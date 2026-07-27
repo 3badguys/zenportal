@@ -1,0 +1,44 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Dependencies (installed fresh in container)
+node_modules
+
+# Build output (built fresh in container)
+dist
+backend/dist
+frontend/dist
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# IDE & OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Docs & misc
+*.md
+LICENSE
+.tmp
+.cache
+*.log
+
+# Docker
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Storage (mounted as volume)
+backend/storage
+
+# Misc
+.pi
+.tokensave

@@ -1,0 +1,20 @@
+import { Link } from 'react-router-dom';
+import { Post } from '../api/posts';
+
+export default function PostCard({ post }: { post: Post }) {
+  const formattedDate = post.publishedAt
+    ? new Date(post.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+    : null;
+
+  return (
+    <Link to={`/posts/${post.slug}`}
+      className="block p-4 border border-gray-200 rounded-lg hover:shadow-md hover:border-gray-300 transition-all duration-200">
+      {post.coverImage && (
+        <img src={post.coverImage} alt={post.title} className="w-full h-40 object-cover rounded mb-3" />
+      )}
+      <h2 className="text-lg font-semibold text-gray-900 mb-1">{post.title}</h2>
+      {post.summary && <p className="text-sm text-gray-500 mb-2 line-clamp-2">{post.summary}</p>}
+      <time className="text-xs text-gray-400">{formattedDate ?? 'Not published'}</time>
+    </Link>
+  );
+}

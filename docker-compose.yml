@@ -1,0 +1,60 @@
+services:
+  # ── Database ──────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: zenportal-db
+    restart: unless-stopped
+    environment:
+      TZ: ${TIMEZONE:-Asia/Shanghai}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-zenportal}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER:-postgres}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── Backend ───────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: production
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-}
+    container_name: zenportal-backend
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      TZ: ${TIMEZONE:-Asia/Shanghai}
+      DATABASE_URL: "postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-zenportal}"
+      PORT: ${PORT:-3000}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      VISITOR_SALT: ${VISITOR_SALT:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── Frontend (nginx + static build) ───────────
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: production
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-}
+    container_name: zenportal-frontend
+    restart: unless-stopped
+    environment:
+      TZ: ${TIMEZONE:-Asia/Shanghai}
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

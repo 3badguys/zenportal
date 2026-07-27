@@ -1,0 +1,185 @@
+# ZenPortal
+
+个人主页 + 技术博客，一套轻量的内容站点。
+
+## 功能
+
+- 📝 **博客** — Markdown 写作，支持 GFM 表格、代码高亮、原始 HTML
+- 🧱 **页面构建器** — Hero / About / SocialLinks / FeaturedPosts 等 block 自由组合
+- 💬 **评论区** — 基于 IP + 匿名昵称，首次评论需审核，已通过用户后续自动放行
+- 🖼️ **媒体管理** — 图片/视频/音频上传，自动检测引用、清理未使用文件
+- 🔐 **管理后台** — Token 鉴权，独立路径 `/my-studio-xxxx`，博客 CRUD + 评论审核 + 媒体管理
+- 🐳 **Docker 部署** — 前后端 + PostgreSQL 一键启动，开发热重载 / 生产静态构建双模式
+
+## 技术栈
+
+| 层 | 技术 |
+|---|---|
+| 前端 | React 18 + TypeScript + Vite + Tailwind CSS + react-markdown |
+| 后端 | NestJS + TypeScript + Prisma ORM |
+| 数据库 | PostgreSQL 16 |
+| 部署 | Docker Compose，dev/prod 双配置 |
+
+## 项目结构
+
+```
+zenportal/
+├── backend/
+│   ├── prisma/              # Schema + 迁移文件
+│   ├── storage/             # 上传的媒体文件 (运行时)
+│   └── src/
+│       ├── common/          # 过滤器、拦截器、守卫、工具函数
+│       │   ├── filters/     # 全局异常过滤 + Prisma 错误处理
+│       │   ├── guards/      # Admin Token 鉴权
+│       │   ├── interceptors/ # 响应包装 + 请求 ID
+│       │   └── utils/       # 访客 ID 生成、颜色分配
+│       ├── config/          # Prisma 服务
+│       └── modules/
+│           ├── posts/       # 文章 CRUD + DTO 校验
+│           ├── comments/    # 评论 (公开 + 管理)
+│           ├── layout/      # 页面布局 (blocks)
+│           ├── media/       # 文件上传/管理/引用检测
+│           ├── site/        # 站点配置
+│           └── admin/       # 管理模块汇总
+├── frontend/
+│   └── src/
+│       ├── blocks/          # 页面构建器块组件
+│       │   ├── Hero.tsx     # 头图 + 标题
+│       │   ├── AboutMe.tsx  # 个人介绍
+│       │   ├── SocialLinks.tsx # 社交链接
+│       │   ├── FeaturedPosts.tsx # 精选文章
+│       │   └── Divider.tsx  # 分割线
+│       ├── pages/           # 页面
+│       │   ├── HomePage.tsx     # 首页 (blocks 渲染)
+│       │   ├── BlogPage.tsx     # 博客列表
+│       │   └── PostPage.tsx     # 文章详情 + 评论区
+│       ├── admin/           # 管理后台
+│       │   ├── AdminLayout.tsx  # 后台布局
+│       │   ├── AdminPosts.tsx   # 文章管理
+│       │   ├── AdminComments.tsx # 评论审核
+│       │   └── AdminMedia.tsx   # 媒体管理
+│       ├── components/      # 通用组件
+│       └── api/             # API 客户端
+├── scripts/
+│   └── setup.js             # 从根 .env 生成子目录 .env
+├── package.json             # npm workspaces 根配置
+├── .env.example             # 统一环境变量模板
+├── .dockerignore            # Docker 构建排除规则
+├── docker-compose.yml       # 基础服务编排 (prod 默认)
+├── docker-compose.dev.yml   # 开发热重载覆盖层
+└── docker-compose.prod.yml  # 生产端口映射
+```
+
+## 快速开始
+
+### 1. 配置环境变量
+
+```bash
+cp .env.example .env
+# 编辑 .env — 修改敏感值：DB_PASSWORD、ADMIN_TOKEN、VISITOR_SALT
+
+# 生成子目录 .env 文件（仅非 Docker 裸跑开发需要，Docker 模式 skips）
+npm run setup
+```
+
+关键变量说明：
+
+| 变量 | 默认值 | 说明 |
+|---|---|---|
+| `NPM_REGISTRY` | `https://registry.npmmirror.com` | npm 镜像源，置空 = npm 官方源 |
+| `DB_USER` / `DB_PASSWORD` / `DB_NAME` | `postgres` / `postgres` / `zenportal` | 数据库连接，docker-compose 自动拼接 `DATABASE_URL` |
+| `ADMIN_TOKEN` | `change-me-...` | 管理后台 API 鉴权令牌，用 `openssl rand -hex 32` 生成强随机令牌 |
+| `VISITOR_SALT` | `change-me-...` | 访客 ID 哈希盐值，用于评论区匿名标识 |
+| `VITE_API_BASE_URL` | `http://localhost:3000/api` | 前端请求的后端地址 |
+| `VITE_ADMIN_SECRET_PATH` | `my-admin-path` | 管理后台访问路径前缀，改为自己独有的路径（不要在公共场合暴露） |
+
+### 2. 启动 Docker
+
+```bash
+# 开发模式 (热重载) — 前端 :5173，后端 :3000
+npm run start:dev
+
+# 生产模式 — 前端 Nginx 静态构建 :8080
+npm run start
+```
+
+首次启动后初始化数据库：
+
+```bash
+docker compose exec backend npx prisma migrate dev --name init
+```
+
+### 3. 访问
+
+| 服务 | 开发 | 生产 |
+|---|---|---|
+| 前端 | http://localhost:5173 | http://localhost:8080 |
+| 后端 API | http://localhost:3000 | (nginx 代理 /api/) |
+| 管理后台 | http://localhost:5173/my-admin-path | http://localhost:8080/my-admin-path |
+| PostgreSQL | localhost:5432 | localhost:5432 |
+
+### 4. 停止
+
+```bash
+npm run stop
+```
+
+## API 接口
+
+### 公开
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/site` | 站点配置 |
+| GET | `/api/posts?page=1&pageSize=10` | 博客列表 (已发布) |
+| GET | `/api/posts/:slug` | 文章详情 |
+| GET | `/api/posts/:slug/comments` | 文章评论 (已审核) |
+| POST | `/api/posts/:slug/comments` | 提交评论 |
+| GET | `/api/layout/:pageSlug` | 页面布局 |
+
+### 管理 (需 `X-Admin-Token` 请求头)
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET/POST/PUT/DELETE | `/api/admin/posts` | 文章 CRUD |
+| GET | `/api/admin/comments` | 评论列表 |
+| PUT | `/api/admin/comments/:id/approve` | 通过评论 |
+| DELETE | `/api/admin/comments/:id` | 删除评论 |
+| GET/POST/DELETE | `/api/admin/media` | 媒体管理 |
+| PUT | `/api/admin/layout/:pageSlug` | 更新页面布局 |
+| PUT | `/api/admin/site` | 更新站点配置 |
+
+## 页面构建器
+
+页面内容通过 `blocks` JSON 数组定义，存储在 `page_layouts` 表中。每个 block 包含 `type` 和 `props`：
+
+```json
+[
+  { "type": "Hero",      "props": { "title": "Hello", "subtitle": "..." } },
+  { "type": "AboutMe",   "props": { "name": "...", "avatar": "...", "bio": "..." } },
+  { "type": "SocialLinks", "props": { "links": [{"label":"GitHub","url":"..."}] } },
+  { "type": "FeaturedPosts", "props": { "postIds": ["uuid-1", "uuid-2"] } },
+  { "type": "Divider",   "props": {} }
+]
+```
+
+Block 组件位于 `frontend/src/blocks/`，导出 `blockType` 常量即自动注册。
+
+## 评论区设计
+
+- 访客身份：基于 `IP + SALT` 的 SHA256 哈希生成 `visitor_xxxxxxxx` 匿名标识
+- 审核策略：同一 IP 至少有一条已通过评论后，后续评论自动放行
+- 前端展示：访客颜色由哈希值映射到 HSL 色环，同一访客所有评论同色
+- 支持嵌套回复（`parentId`）
+
+## 后端
+
+### 全局基础设施
+
+- **请求 ID**：每个请求自动生成 `X-Request-Id`，日志可追踪
+- **统一响应**：`{ code, message, data }` 格式
+- **异常过滤**：`HttpException` → 对应状态码；未预期错误 → 500 + 日志
+- **Prisma 异常过滤**：`P2002` 唯一冲突 → 409，`P2003` 外键失败 → 400，`P2025` 记录不存在 → 404
+- **DTO 校验**：`class-validator` + `ValidationPipe`，自动 `whitelist` 去除非白名单字段
+- **优雅关闭**：SIGTERM/SIGINT → 关闭 HTTP 监听 → 断开 Prisma → 退出
+- **生产环境保护**：`NODE_ENV=production` 时未设 `ADMIN_TOKEN` 直接返回 401

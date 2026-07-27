@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Post {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String    @unique @db.VarChar(255)
+  title       String    @db.VarChar(255)
+  summary     String?   @db.VarChar(500)
+  body        String
+  coverImage  String?   @map("cover_image") @db.VarChar(500)
+  isPublished Boolean   @default(false) @map("is_published")
+  publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  comments Comment[]
+
+  @@index([slug])
+  @@index([publishedAt(sort: Desc)])
+  @@map("posts")
+}
+
+model PageLayout {
+  id       Int    @id @default(autoincrement())
+  pageSlug String @unique @default("home") @map("page_slug") @db.VarChar(50)
+  blocks   Json   @default("[]")
+
+  @@map("page_layouts")
+}
+
+model SiteConfig {
+  id              Int     @id @default(1)
+  siteTitle       String? @map("site_title") @db.VarChar(200)
+  siteDescription String? @map("site_description")
+
+  @@map("site_config")
+}
+
+model Medium {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  filename     String   @db.VarChar(255)
+  originalName String   @map("original_name") @db.VarChar(255)
+  filePath     String   @unique @map("file_path") @db.VarChar(500)
+  fileSize     Int?     @map("file_size")
+  mimeType     String?  @map("mime_type") @db.VarChar(100)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([createdAt(sort: Desc)])
+  @@map("media")
+}
+
+model Comment {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId     String    @map("post_id") @db.Uuid
+  content    String
+  ip         String    @db.VarChar(45)
+  nickname   String?   @db.VarChar(100)
+  isApproved Boolean   @default(false) @map("is_approved")
+  parentId   String?   @map("parent_id") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  post    Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("CommentToComment", fields: [parentId], references: [id])
+  replies Comment[] @relation("CommentToComment")
+
+  @@index([postId])
+  @@index([isApproved])
+  @@index([ip])
+  @@index([parentId])
+  @@map("comments")
+}

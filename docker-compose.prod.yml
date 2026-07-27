@@ -1,0 +1,5 @@
+# Production overrides
+services:
+  frontend:
+    ports:
+      - "8080:80"

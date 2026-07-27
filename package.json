@@ -1,0 +1,19 @@
+{
+  "name": "zenportal",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build": "npm run build -w backend && npm run build -w frontend",
+    "build:backend": "npm run build -w backend",
+    "build:frontend": "npm run build -w frontend",
+    "start": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d",
+    "start:dev": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d",
+    "setup": "node scripts/setup.js",
+    "stop": "docker compose down",
+    "db:migrate": "npm run prisma:migrate -w backend",
+    "db:generate": "npm run prisma:generate -w backend"
+  }
+}

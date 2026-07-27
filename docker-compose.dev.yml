@@ -1,0 +1,28 @@
+# Development overrides — use with: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+services:
+  backend:
+    build:
+      target: development
+    ports:
+      - "3000:3000"
+    command: >
+      sh -c "npx prisma migrate deploy && npx nest start --watch"
+    volumes:
+      - ./backend/src:/app/backend/src
+      - ./backend/prisma:/app/backend/prisma
+      - ./backend/storage:/app/backend/storage
+
+  frontend:
+    build:
+      target: development
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE_URL: "http://localhost:3000/api"
+    command: npx vite --host 0.0.0.0
+    volumes:
+      - ./frontend/src:/app/frontend/src
+      - ./frontend/index.html:/app/frontend/index.html
+      - ./frontend/vite.config.ts:/app/frontend/vite.config.ts
+      - ./frontend/.env:/app/frontend/.env:ro
+      - ./frontend/public:/app/frontend/public
