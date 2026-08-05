@@ -15,12 +15,17 @@ export class LayoutService {
     const enriched = await Promise.all(
       blocks.map(async (block) => {
         if (block.type === 'FeaturedPosts' && block.props?.postIds?.length > 0) {
-          const posts = await this.prisma.post.findMany({
-            where: { id: { in: block.props.postIds }, isPublished: true },
-            select: { id: true, slug: true, title: true, summary: true, coverImage: true, publishedAt: true },
-            orderBy: { publishedAt: 'desc' },
-          });
-          return { ...block, props: { ...block.props, posts } };
+          try {
+            const posts = await this.prisma.post.findMany({
+              where: { id: { in: block.props.postIds }, isPublished: true },
+              select: { id: true, slug: true, title: true, summary: true, coverImage: true, publishedAt: true },
+              orderBy: { publishedAt: 'desc' },
+            });
+            return { ...block, props: { ...block.props, posts } };
+          } catch {
+            // Invalid UUIDs in postIds — return block without enriched posts
+            return { ...block, props: { ...block.props, posts: [] } };
+          }
         }
         return block;
       }),

@@ -64,6 +64,10 @@ export default function AdminLayout() {
     setShowConfirm(false);
     try {
       const parsed = JSON.parse(json);
+      if (!Array.isArray(parsed)) {
+        setError('blocks must be a JSON array');
+        return;
+      }
       setLoading(true);
       await layoutApi.update('home', parsed);
       setBlocks(parsed);
@@ -143,6 +147,7 @@ export default function AdminLayout() {
 
       {showConfirm && (
         <ConfirmDialog
+          confirmLabel="Save"
           title="Save Layout Config"
           message={`This will overwrite the current layout with ${JSON.parse(json).length} blocks. Continue?`}
           onConfirm={handleSave}

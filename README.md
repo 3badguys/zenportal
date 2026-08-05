@@ -155,11 +155,41 @@ npm run stop
 
 ```json
 [
-  { "type": "Hero",      "props": { "title": "Hello", "subtitle": "..." } },
-  { "type": "AboutMe",   "props": { "name": "...", "avatar": "...", "bio": "..." } },
-  { "type": "SocialLinks", "props": { "links": [{"label":"GitHub","url":"..."}] } },
-  { "type": "FeaturedPosts", "props": { "postIds": ["uuid-1", "uuid-2"] } },
-  { "type": "Divider",   "props": {} }
+  {
+    "type": "Hero",
+    "props": {
+      "title": "Hello, I'm Zen",
+      "subtitle": "Full-stack developer & writer",
+      "avatar": "/media/avatar.jpg"
+    }
+  },
+  {
+    "type": "AboutMe",
+    "props": {
+      "content": "Hi! I'm a passionate developer who loves building things for the web.\n\nThis is my personal site where I share thoughts, projects, and tutorials."
+    }
+  },
+  {
+    "type": "SocialLinks",
+    "props": {
+      "links": [
+        { "platform": "GitHub", "url": "https://github.com/3badguys" },
+        { "platform": "Twitter", "url": "https://twitter.com/3badguys" },
+        { "platform": "LinkedIn", "url": "https://linkedin.com/in/3badguys" }
+      ]
+    }
+  },
+  {
+    "type": "Divider",
+    "props": {}
+  },
+  {
+    "type": "FeaturedPosts",
+    "props": {
+      "title": "Recent Posts",
+      "postIds": ["<post-uuid-1>", "<post-uuid-2>"]
+    }
+  }
 ]
 ```
 
