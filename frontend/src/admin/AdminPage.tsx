@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import AdminPosts from './AdminPosts';
+import AdminComments from './AdminComments';
 import AdminMedia from './AdminMedia';
 import AdminLayout from './AdminLayout';
-import AdminComments from './AdminComments';
 
 const tabs = [
   { key: 'posts', label: '📝 Posts', cmp: AdminPosts },
+  { key: 'comments', label: '💬 Comments', cmp: AdminComments },
   { key: 'media', label: '🖼️ Media', cmp: AdminMedia },
   { key: 'layout', label: '🧩 Layout', cmp: AdminLayout },
-  { key: 'comments', label: '💬 Comments', cmp: AdminComments },
 ];
 
 export default function AdminPage() {
