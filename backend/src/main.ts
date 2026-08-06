@@ -4,7 +4,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter';
-import { join } from 'path';
+import * as path from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -20,7 +20,7 @@ async function bootstrap() {
     exposedHeaders: 'X-Request-Id',
   });
 
-  app.useStaticAssets(join(__dirname, '..', 'storage'), { prefix: '/media/' });
+  app.useStaticAssets(path.resolve(process.cwd(), 'storage'), { prefix: '/media/' });
 
   const port = process.env.PORT || 3000;
   const server = await app.listen(port, '0.0.0.0');

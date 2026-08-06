@@ -40,6 +40,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - media_data:/app/storage
 
   # ── Frontend (nginx + static build) ───────────
   frontend:
@@ -59,3 +61,4 @@ services:
 
 volumes:
   pgdata:
+  media_data:

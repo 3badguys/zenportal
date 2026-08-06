@@ -10,7 +10,7 @@ services:
     volumes:
       - ./backend/src:/app/backend/src
       - ./backend/prisma:/app/backend/prisma
-      - ./backend/storage:/app/backend/storage
+      - media_data:/app/backend/storage
 
   frontend:
     build:

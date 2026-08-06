@@ -7,7 +7,7 @@ import { join } from 'path';
 const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/quicktime', 'audio/mpeg', 'audio/wav'];
 const MAX_SIZES: Record<string, number> = { image: 10 * 1024 * 1024, video: 50 * 1024 * 1024, audio: 10 * 1024 * 1024 };
 
-const STORAGE_ROOT = join(__dirname, '..', '..', '..', 'storage');
+const STORAGE_ROOT = path.resolve(process.cwd(), 'storage');
 
 @Injectable()
 export class MediaService {
