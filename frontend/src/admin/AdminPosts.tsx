@@ -22,6 +22,7 @@ export default function AdminPosts() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
@@ -150,7 +151,7 @@ export default function AdminPosts() {
                     {p.isPublished ? 'Published' : 'Draft'}
                   </span>
                 </div>
-                <div className="text-xs text-gray-400 mt-0.5">/{p.slug}</div>
+                <div className="text-xs text-gray-400 mt-0.5">/{p.slug} <button onClick={async () => { await navigator.clipboard.writeText(p.id); setCopiedId(p.id); setTimeout(() => setCopiedId(null), 1500); }} title="Copy post ID" className="ml-1 text-gray-300 hover:text-gray-500">{copiedId === p.id ? '✓ Copied' : '📋'}</button></div>
               </div>
               <div className="flex gap-1 ml-2">
                 <button onClick={() => handleEdit(p)} className="px-2 py-1 text-xs border rounded hover:bg-gray-100 transition-colors">Edit</button>
