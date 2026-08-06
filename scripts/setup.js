@@ -9,6 +9,9 @@ const TARGETS = {
     'PORT',
     'ADMIN_TOKEN',
     'VISITOR_SALT',
+    'MEDIA_MAX_IMAGE_SIZE_MB',
+    'MEDIA_MAX_VIDEO_SIZE_MB',
+    'MEDIA_MAX_AUDIO_SIZE_MB',
   ],
   'frontend/.env': [
     'VITE_API_BASE_URL',

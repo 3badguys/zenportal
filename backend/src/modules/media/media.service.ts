@@ -1,16 +1,41 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../config/prisma.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import { join } from 'path';
 
-const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/quicktime', 'audio/mpeg', 'audio/wav'];
-const MAX_SIZES: Record<string, number> = { image: 10 * 1024 * 1024, video: 50 * 1024 * 1024, audio: 10 * 1024 * 1024 };
+const ALLOWED_MIMES = [
+  // --- Images ---
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+  'image/svg+xml', 'image/bmp', 'image/tiff', 'image/avif',
+  'image/heic', 'image/x-icon', // ICO icon
+
+  // --- Videos ---
+  'video/mp4', 'video/webm', 'video/quicktime',
+  'video/x-msvideo', 'video/x-matroska', 'video/mpeg',
+  'video/3gpp', 'video/ogg',
+
+  // --- Audio ---
+  'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/mp4',
+  'audio/aac', 'audio/flac', 'audio/opus', 'audio/m4a', 'audio/x-wav',
+];
+
+const MAX_SIZES: Record<string, number> = {
+  image: (parseInt(process.env.MEDIA_MAX_IMAGE_SIZE_MB || '') || 10) * 1024 * 1024,
+  video: (parseInt(process.env.MEDIA_MAX_VIDEO_SIZE_MB || '') || 50) * 1024 * 1024,
+  audio: (parseInt(process.env.MEDIA_MAX_AUDIO_SIZE_MB || '') || 10) * 1024 * 1024,
+};
+
+// derive category + limits from mimetype prefix
+const TYPE_PREFIX = (mime: string) => mime.split('/')[0];
+const CATEGORY_DIR: Record<string, string> = { image: 'images', video: 'videos', audio: 'audios' };
 
 const STORAGE_ROOT = path.resolve(process.cwd(), 'storage');
 
 @Injectable()
 export class MediaService {
+  private readonly logger = new Logger(MediaService.name);
+
   constructor(private prisma: PrismaService) {}
 
   async findAll(page = 1, pageSize = 50) {
@@ -27,8 +52,14 @@ export class MediaService {
     file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
     if (!ALLOWED_MIMES.includes(file.mimetype)) throw new BadRequestException('Unsupported file type');
 
-    const category = file.mimetype.startsWith('image/') ? 'images' : file.mimetype.startsWith('video/') ? 'videos' : 'audios';
-    const maxSize = MAX_SIZES[category === 'images' ? 'image' : category === 'videos' ? 'video' : 'audio'];
+    const prefix = TYPE_PREFIX(file.mimetype);
+    const category = CATEGORY_DIR[prefix] || 'others';
+    if (category === 'others') throw new BadRequestException('Unsupported file type');
+    const maxSize = MAX_SIZES[prefix] ?? 10 * 1024 * 1024;
+    this.logger.warn(
+      `Upload size check: mimetype="${file.mimetype}" prefix="${prefix}" ` +
+      `fileSize=${(file.size / 1024 / 1024).toFixed(2)}MB maxSize=${(maxSize / 1024 / 1024).toFixed(0)}MB`,
+    );
     if (file.size > maxSize) throw new BadRequestException(`File too large. Max ${maxSize / 1024 / 1024}MB`);
 
     const now = new Date();

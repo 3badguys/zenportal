@@ -6,7 +6,7 @@
 
 - 📝 **博客** — Markdown 写作，支持 GFM 表格、代码高亮、原始 HTML
 - 🧱 **页面构建器** — Hero / About / SocialLinks / FeaturedPosts 等 block 自由组合
-- 💬 **评论区** — 基于 IP + 匿名昵称，首次评论需审核，已通过用户后续自动放行
+- 💬 **评论区** — 基于 IP 匿名标识，评论需后台审核后展示
 - 🖼️ **媒体管理** — 图片/视频/音频上传，自动检测引用、清理未使用文件
 - 🔐 **管理后台** — Token 鉴权，独立路径 `/my-studio-xxxx`，博客 CRUD + 评论审核 + 媒体管理
 - 🐳 **Docker 部署** — 前后端 + PostgreSQL 一键启动，开发热重载 / 生产静态构建双模式
@@ -26,22 +26,24 @@
 zenportal/
 ├── backend/
 │   ├── prisma/              # Schema + 迁移文件
-│   ├── storage/             # 上传的媒体文件 (运行时)
+│   ├── prisma.config.ts     # Prisma v7 数据库连接配置
 │   └── src/
 │       ├── common/          # 过滤器、拦截器、守卫、工具函数
+│       │   ├── decorators/  # @ClientIp 装饰器
 │       │   ├── filters/     # 全局异常过滤 + Prisma 错误处理
 │       │   ├── guards/      # Admin Token 鉴权
 │       │   ├── interceptors/ # 响应包装 + 请求 ID
-│       │   └── utils/       # 访客 ID 生成、颜色分配
-│       ├── config/          # Prisma 服务
+│       │   └── utils/       # 访客 ID 生成
+│       ├── config/          # Prisma 服务 + PrismaPg adapter
 │       └── modules/
 │           ├── posts/       # 文章 CRUD + DTO 校验
 │           ├── comments/    # 评论 (公开 + 管理)
-│           ├── layout/      # 页面布局 (blocks)
+│           ├── layout/      # 页面布局 (blocks + DTO 校验)
 │           ├── media/       # 文件上传/管理/引用检测
 │           ├── site/        # 站点配置
 │           └── admin/       # 管理模块汇总
 ├── frontend/
+│   ├── nginx.conf           # 生产 Nginx 配置 (API + Media 反代)
 │   └── src/
 │       ├── blocks/          # 页面构建器块组件
 │       │   ├── Hero.tsx     # 头图 + 标题
@@ -54,12 +56,19 @@ zenportal/
 │       │   ├── BlogPage.tsx     # 博客列表
 │       │   └── PostPage.tsx     # 文章详情 + 评论区
 │       ├── admin/           # 管理后台
-│       │   ├── AdminLayout.tsx  # 后台布局
-│       │   ├── AdminPosts.tsx   # 文章管理
-│       │   ├── AdminComments.tsx # 评论审核
-│       │   └── AdminMedia.tsx   # 媒体管理
+│       │   ├── AdminPage.tsx    # 后台 Tab 导航
+│       │   ├── AdminLayout.tsx  # 页面布局编辑器 (JSON)
+│       │   ├── AdminPosts.tsx   # 文章管理 + 富文本编辑器
+│       │   ├── AdminComments.tsx # 评论审核 (批量操作)
+│       │   └── AdminMedia.tsx   # 媒体管理 (上传/删除/引用检测)
 │       ├── components/      # 通用组件
-│       └── api/             # API 客户端
+│       │   ├── MarkdownRenderer.tsx # Markdown 渲染 (react-markdown)
+│       │   ├── PostCard.tsx       # 文章卡片
+│       │   ├── ConfirmDialog.tsx  # 确认弹窗
+│       │   ├── Pagination.tsx     # 分页
+│       │   └── Skeleton.tsx       # 加载骨架屏
+│       ├── utils/           # 访客 ID / 颜色工具
+│       └── api/             # API 客户端 (comments / layout / media / posts / site)
 ├── scripts/
 │   └── setup.js             # 从根 .env 生成子目录 .env
 ├── package.json             # npm workspaces 根配置
@@ -92,6 +101,9 @@ npm run setup
 | `VISITOR_SALT` | `change-me-...` | 访客 ID 哈希盐值，用于评论区匿名标识 |
 | `VITE_API_BASE_URL` | `http://localhost:3000/api` | 前端请求的后端地址 |
 | `VITE_ADMIN_SECRET_PATH` | `my-admin-path` | 管理后台访问路径前缀，改为自己独有的路径（不要在公共场合暴露） |
+| `MEDIA_MAX_IMAGE_SIZE_MB` | `10` | 图片上传大小上限 (MB) |
+| `MEDIA_MAX_VIDEO_SIZE_MB` | `50` | 视频上传大小上限 (MB) |
+| `MEDIA_MAX_AUDIO_SIZE_MB` | `10` | 音频上传大小上限 (MB) |
 
 ### 2. 启动 Docker
 
