@@ -16,6 +16,12 @@ const TARGETS = {
   ],
 };
 
+// defaults when .env does not provide a value
+const DEFAULTS = {
+  VITE_API_BASE_URL: 'http://localhost:3000/api',
+  VITE_ADMIN_SECRET_PATH: 'my-admin-path',
+};
+
 function parseEnv(filePath) {
   const vars = {};
   const raw = fs.readFileSync(filePath, 'utf-8');
@@ -50,6 +56,8 @@ function main() {
     for (const key of keys) {
       if (vars[key] !== undefined && vars[key] !== '') {
         lines.push(`${key}=${vars[key]}`);
+      } else if (DEFAULTS[key]) {
+        lines.push(`${key}=${DEFAULTS[key]}`);
       } else {
         console.warn(`  ⚠ ${childRel}: ${key} not set — skipped`);
       }

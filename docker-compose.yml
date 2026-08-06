@@ -49,6 +49,7 @@ services:
       target: production
       args:
         NPM_REGISTRY: ${NPM_REGISTRY:-}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
     container_name: zenportal-frontend
     restart: unless-stopped
     environment:

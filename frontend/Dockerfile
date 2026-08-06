@@ -24,6 +24,7 @@ CMD ["npx", "vite", "--host", "0.0.0.0"]
 
 # ---- Prod Stage ----
 FROM base AS builder
+ARG VITE_API_BASE_URL
 WORKDIR /app/frontend
 RUN npm run build
 
