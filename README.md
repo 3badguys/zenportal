@@ -4,11 +4,11 @@
 
 ## 功能
 
+- 🧱 **主页构建器** — Hero / About / SocialLinks / FeaturedPosts 等 block 自由组合
 - 📝 **博客** — Markdown 写作，支持 GFM 表格、代码高亮、原始 HTML
-- 🧱 **页面构建器** — Hero / About / SocialLinks / FeaturedPosts 等 block 自由组合
 - 💬 **评论区** — 基于 IP 匿名标识，评论需后台审核后展示
 - 🖼️ **媒体管理** — 图片/视频/音频上传，自动检测引用、清理未使用文件
-- 🔐 **管理后台** — Token 鉴权，独立路径 `/my-studio-xxxx`，博客 CRUD + 评论审核 + 媒体管理
+- 🔐 **管理后台** — Token 鉴权，独立路径 `/my-admin-path`，博客 CRUD + 评论审核 + 媒体管理
 - 🐳 **Docker 部署** — 前后端 + PostgreSQL 一键启动，开发热重载 / 生产静态构建双模式
 
 ## 技术栈
@@ -186,12 +186,6 @@ npm run stop
     }
   },
   {
-    "type": "AboutMe",
-    "props": {
-      "content": "Hi! I'm a passionate developer who loves building things for the web.\n\nThis is my personal site where I share thoughts, projects, and tutorials."
-    }
-  },
-  {
     "type": "SocialLinks",
     "props": {
       "links": [
@@ -202,13 +196,19 @@ npm run stop
     }
   },
   {
+    "type": "AboutMe",
+    "props": {
+      "content": "Hi! I'm a passionate developer who loves building things for the web.\n\nThis is my personal site where I share thoughts, projects, and tutorials."
+    }
+  },
+  {
     "type": "Divider",
     "props": {}
   },
   {
     "type": "FeaturedPosts",
     "props": {
-      "title": "Recent Posts",
+      "title": "Featured Posts",
       "postIds": ["<post-uuid-1>", "<post-uuid-2>"]
     }
   }
