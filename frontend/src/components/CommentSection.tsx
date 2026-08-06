@@ -12,7 +12,6 @@ interface Props {
 export default function CommentSection({ slug, groups: initialGroups, loading }: Props) {
   const [groups, setGroups] = useState(initialGroups);
   const [content, setContent] = useState('');
-  const [nickname, setNickname] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -24,9 +23,8 @@ export default function CommentSection({ slug, groups: initialGroups, loading }:
     setSubmitting(true);
     setError('');
     try {
-      await commentsApi.create(slug, content.trim(), nickname.trim() || undefined);
+      await commentsApi.create(slug, content.trim());
       setContent('');
-      setNickname('');
       const res = await commentsApi.getByPost(slug);
       setGroups(res.data);
     } catch (err: any) {
@@ -41,8 +39,6 @@ export default function CommentSection({ slug, groups: initialGroups, loading }:
       <h3 className="text-lg font-semibold mb-6">Comments ({totalComments})</h3>
 
       <form onSubmit={handleSubmit} className="mb-8 p-4 border border-gray-200 rounded-lg">
-        <input type="text" placeholder="Nickname (optional)" value={nickname}
-          onChange={(e) => setNickname(e.target.value)} className="w-full mb-2 px-3 py-2 border border-gray-300 rounded text-sm" />
         <textarea placeholder="Write a comment..." value={content}
           onChange={(e) => setContent(e.target.value)} className="w-full mb-2 px-3 py-2 border border-gray-300 rounded text-sm min-h-[80px]" required />
         {error && <p className="text-red-500 text-xs mb-2">{error}</p>}
@@ -62,7 +58,7 @@ export default function CommentSection({ slug, groups: initialGroups, loading }:
       {!loading && groups.map((group) => {
         const color = getVisitorColor(group.visitorId);
         const first = group.comments[0];
-        const name = getDisplayName(group.visitorId, first.nickname);
+        const name = getDisplayName(group.visitorId);
 
         return (
           <div key={group.visitorId} className="mb-4 border border-gray-100 rounded-lg p-4">
@@ -78,8 +74,8 @@ export default function CommentSection({ slug, groups: initialGroups, loading }:
             {group.comments.map((c) => (
               <div key={c.id} className="ml-8 mb-1 p-2 bg-gray-50 rounded">
                 <p className="text-sm text-gray-700">{c.content}</p>
-                <time className="text-xs text-gray-400">
-                  {new Date(c.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+              <time className="text-xs text-gray-400">
+                  {new Date(c.createdAt).toISOString().replace('T', ' ').slice(0, 19)}
                 </time>
               </div>
             ))}

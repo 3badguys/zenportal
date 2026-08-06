@@ -2,7 +2,7 @@ import client from './client';
 
 export interface Comment {
   id: string; postId: string; content: string; ip: string;
-  nickname?: string; isApproved: boolean; parentId?: string;
+  isApproved: boolean; parentId?: string;
   createdAt: string; post?: { slug: string; title: string };
 }
 
@@ -17,8 +17,8 @@ export interface CommentListResult {
 
 export const commentsApi = {
   getByPost: (slug: string) => client.get(`/posts/${slug}/comments`) as Promise<{ data: CommentGroup[] }>,
-  create: (slug: string, content: string, nickname?: string, parentId?: string) =>
-    client.post(`/posts/${slug}/comments`, { content, nickname, parentId }) as Promise<{ data: Comment }>,
+  create: (slug: string, content: string, parentId?: string) =>
+    client.post(`/posts/${slug}/comments`, { content, parentId }) as Promise<{ data: Comment }>,
   adminList: (page = 1, pageSize = 20, approved?: boolean) =>
     client.get(`/admin/comments?page=${page}&pageSize=${pageSize}${approved !== undefined ? `&approved=${approved}` : ''}`) as Promise<{ data: CommentListResult }>,
   approve: (id: string) => client.put(`/admin/comments/${id}/approve`) as Promise<{ data: Comment }>,

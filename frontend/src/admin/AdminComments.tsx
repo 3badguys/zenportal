@@ -160,8 +160,8 @@ export default function AdminComments() {
                   </div>
                   <p className="text-sm text-gray-700">{c.content}</p>
                   <div className="flex gap-3 mt-1 text-xs text-gray-400">
-                    <span>{c.nickname || 'Anonymous'} · IP: {c.ip.slice(0, 8)}...</span>
-                    <span>{new Date(c.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                    <span>IP: {c.ip}</span>
+                    <span>{new Date(c.createdAt).toISOString().replace('T', ' ').slice(0, 19)}</span>
                   </div>
                 </div>
                 <div className="flex gap-1 shrink-0">

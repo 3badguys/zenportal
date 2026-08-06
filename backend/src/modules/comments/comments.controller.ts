@@ -16,9 +16,9 @@ export class CommentsController {
   create(
     @Param('slug') slug: string,
     @ClientIp() ip: string,
-    @Body() body: { content: string; nickname?: string; parentId?: string },
+    @Body() body: { content: string; parentId?: string },
   ) {
-    return this.commentsService.create(slug, ip, body.content, body.nickname, body.parentId);
+    return this.commentsService.create(slug, ip, body.content, body.parentId);
   }
 }
 

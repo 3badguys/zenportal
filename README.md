@@ -103,11 +103,21 @@ npm run start:dev
 npm run start
 ```
 
-首次启动后初始化数据库：
+数据库初始化（仅首次，或 schema 变更后）：
 
 ```bash
-docker compose exec backend npx prisma migrate dev --name init
+# 1. 先起 PostgreSQL
+docker compose up -d postgres
+
+# 2. 本地生成 Prisma migration 文件
+cd backend && npx prisma migrate dev --name init && cd ..
+
+# 3. 全量重建（migration 会在容器启动时自动执行）
+docker compose down -v  # ⚠️ 这会删除所有数据库数据，慎用！
+docker compose up -d --build
 ```
+
+> 之后每次 schema 变更，重复以上三步即可。`prisma migrate deploy` 已内置在 Dockerfile CMD 中，容器启动自动跑。
 
 ### 3. 访问
 

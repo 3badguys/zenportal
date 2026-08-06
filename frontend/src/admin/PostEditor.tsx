@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import MarkdownPreview from '../components/MarkdownPreview';
+import MarkdownRenderer from '../components/MarkdownRenderer';
 
 interface PostForm {
   slug: string;
@@ -104,9 +104,9 @@ export default function PostEditor({ editing, form, loading, onChange, onSave, o
                 className="w-full px-3 py-2 border rounded text-sm font-mono min-h-[200px]"
               />
             ) : (
-              <div className="w-full px-3 py-2 border rounded min-h-[200px] bg-gray-50">
+              <div className="w-full px-3 py-2 border rounded min-h-[200px] bg-gray-50 overflow-auto">
                 {form.body ? (
-                  <MarkdownPreview text={form.body} />
+                  <MarkdownRenderer content={form.body} />
                 ) : (
                   <span className="text-gray-300 text-sm italic">Nothing to preview</span>
                 )}

@@ -14,8 +14,7 @@ export function getVisitorColor(visitorId: string): string {
   return `hsl(${hue}, 70%, 55%)`;
 }
 
-export function getDisplayName(visitorId: string, nickname?: string): string {
-  if (nickname) return nickname;
+export function getDisplayName(visitorId: string): string {
   const short = visitorId.replace('visitor_', '');
-  return `visitor-${short}`;
+  return `visitor_${short}`;
 }

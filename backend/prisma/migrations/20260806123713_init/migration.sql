@@ -51,7 +51,6 @@ CREATE TABLE "comments" (
     "post_id" UUID NOT NULL,
     "content" TEXT NOT NULL,
     "ip" VARCHAR(45) NOT NULL,
-    "nickname" VARCHAR(100),
     "is_approved" BOOLEAN NOT NULL DEFAULT false,
     "parent_id" UUID,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,

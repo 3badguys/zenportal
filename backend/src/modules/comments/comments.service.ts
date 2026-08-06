@@ -29,23 +29,17 @@ export class CommentsService {
     }));
   }
 
-  async create(slug: string, ip: string, content: string, nickname?: string, parentId?: string) {
+  async create(slug: string, ip: string, content: string, parentId?: string) {
     const post = await this.prisma.post.findUnique({ where: { slug } });
     if (!post) throw new NotFoundException('Post not found');
 
-    // Auto-approve if same IP already has approved comments
-    const approvedCount = await this.prisma.comment.count({
-      where: { ip, isApproved: true },
-    });
-    const isApproved = approvedCount > 0;
-
+    // All comments are pending by default, regardless of IP history
     return this.prisma.comment.create({
       data: {
         postId: post.id,
         content,
         ip,
-        nickname: nickname || null,
-        isApproved,
+        isApproved: false,
         parentId: parentId || null,
       },
     });

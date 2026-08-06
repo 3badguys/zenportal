@@ -135,8 +135,8 @@ export default function AdminLayout() {
       <div>
         <h3 className="text-sm font-medium mb-2">Preview ({blocks.length} blocks)</h3>
         <div className="space-y-1">
-          {blocks.map((b) => (
-            <div key={b.id} className="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded transition-all hover:bg-gray-100">
+          {blocks.map((b, idx) => (
+            <div key={b.id ?? `block-${idx}`} className="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded transition-all hover:bg-gray-100">
               <span className="font-medium text-gray-700 w-24 shrink-0">{b.type}</span>
               <span className="text-gray-400 text-xs">id={b.id}</span>
               <span className="text-gray-400 text-xs truncate">{JSON.stringify(b.props).slice(0, 60)}</span>

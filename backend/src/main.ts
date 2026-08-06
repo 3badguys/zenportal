@@ -3,13 +3,14 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter';
 import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const logger = new Logger('Bootstrap');
 
-  app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalFilters(new PrismaExceptionFilter(), new AllExceptionsFilter());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   app.enableCors({
