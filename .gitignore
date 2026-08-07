@@ -7,3 +7,4 @@ backend/storage/*
 !backend/storage/.gitkeep
 .pi/
 .tokensave/
+*.tsbuildinfo

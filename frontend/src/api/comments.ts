@@ -16,7 +16,7 @@ export interface CommentListResult {
 }
 
 export const commentsApi = {
-  getByPost: (slug: string) => client.get(`/posts/${slug}/comments`) as Promise<{ data: CommentGroup[] }>,
+  getByPost: (slug: string, signal?: AbortSignal) => client.get(`/posts/${slug}/comments`, { signal }) as Promise<{ data: CommentGroup[] }>,
   create: (slug: string, content: string, parentId?: string) =>
     client.post(`/posts/${slug}/comments`, { content, parentId }) as Promise<{ data: Comment }>,
   adminList: (page = 1, pageSize = 20, approved?: boolean) =>

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { layoutApi, Block } from '../api/layout';
 import Skeleton from '../components/Skeleton';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { parseLayoutJson } from './layoutJson';
 
 export default function AdminLayout() {
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -28,47 +29,32 @@ export default function AdminLayout() {
     })();
   }, []);
 
-  const validateAndShowError = (raw: string): boolean => {
-    try {
-      JSON.parse(raw);
-      setErrorLine(null);
-      setError('');
-      return true;
-    } catch (e: any) {
-      const match = e.message?.match(/position\s+(\d+)/);
-      if (match) {
-        const pos = parseInt(match[1], 10);
-        const lineNum = raw.substring(0, pos).split('\n').length;
-        setErrorLine(lineNum);
-        const line = raw.split('\n')[lineNum - 1] || '';
-        setError(`Line ${lineNum}: ${e.message.split('\n')[0]}`);
-      } else {
-        setErrorLine(null);
-        setError(e.message || 'Invalid JSON');
-      }
-      return false;
-    }
+  const applyParse = (result: ReturnType<typeof parseLayoutJson>) => {
+    setErrorLine(result.errorLine ?? null);
+    setError(result.ok ? '' : result.error || '');
+    return result.ok;
   };
 
   const handleJsonChange = (val: string) => {
     setJson(val);
-    if (error) validateAndShowError(val);
+    if (error) applyParse(parseLayoutJson(val));
   };
 
   const handleSaveClick = () => {
-    if (!validateAndShowError(json)) return;
+    if (!applyParse(parseLayoutJson(json))) return;
     setShowConfirm(true);
   };
 
   const handleSave = async () => {
     setShowConfirm(false);
+    const result = parseLayoutJson(json);
+    if (!result.ok) {
+      applyParse(result);
+      return;
+    }
+    const parsed = result.data as Block[];
+    setLoading(true);
     try {
-      const parsed = JSON.parse(json);
-      if (!Array.isArray(parsed)) {
-        setError('blocks must be a JSON array');
-        return;
-      }
-      setLoading(true);
       await layoutApi.update('home', parsed);
       setBlocks(parsed);
       setMessage('Saved!');

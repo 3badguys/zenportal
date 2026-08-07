@@ -32,6 +32,19 @@ const CATEGORY_DIR: Record<string, string> = { image: 'images', video: 'videos',
 
 const STORAGE_ROOT = path.resolve(process.cwd(), 'storage');
 
+// multer/busboy encodes multipart filenames as latin1; decode to UTF-8
+// only when the name actually contains high bytes (avoids double-decoding ASCII)
+function decodeFilename(name: string): string {
+  const hasHighByte = [...name].some((ch) => ch.charCodeAt(0) > 127);
+  if (!hasHighByte) return name;
+  try {
+    const decoded = Buffer.from(name, 'latin1').toString('utf8');
+    return decoded.includes('\uFFFD') ? name : decoded;
+  } catch {
+    return name;
+  }
+}
+
 @Injectable()
 export class MediaService {
   private readonly logger = new Logger(MediaService.name);
@@ -49,7 +62,7 @@ export class MediaService {
 
   async upload(file: Express.Multer.File) {
     if (!file) throw new BadRequestException('No file provided');
-    file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
+    file.originalname = decodeFilename(file.originalname);
     if (!ALLOWED_MIMES.includes(file.mimetype)) throw new BadRequestException('Unsupported file type');
 
     const prefix = TYPE_PREFIX(file.mimetype);

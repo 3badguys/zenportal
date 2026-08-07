@@ -9,6 +9,6 @@ export interface LayoutData {
 }
 
 export const layoutApi = {
-  get: (pageSlug = 'home') => client.get(`/layout/${pageSlug}`) as Promise<{ data: LayoutData }>,
+  get: (pageSlug = 'home', signal?: AbortSignal) => client.get(`/layout/${pageSlug}`, { signal }) as Promise<{ data: LayoutData }>,
   update: (pageSlug: string, blocks: Block[]) => client.put(`/admin/layout/${pageSlug}`, { blocks }) as Promise<{ data: LayoutData }>,
 };

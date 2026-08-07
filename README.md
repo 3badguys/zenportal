@@ -28,27 +28,33 @@ zenportal/
 │   ├── prisma/              # Schema + 迁移文件
 │   ├── prisma.config.ts     # Prisma v7 数据库连接配置
 │   └── src/
+│       ├── main.ts          # 入口: helmet / CORS / 全局过滤器 / 静态资源
+│       ├── app.module.ts    # 根模块
 │       ├── common/          # 过滤器、拦截器、守卫、工具函数
 │       │   ├── decorators/  # @ClientIp 装饰器
-│       │   ├── filters/     # 全局异常过滤 + Prisma 错误处理
+│       │   ├── filters/     # 全局异常 + Prisma 错误处理
 │       │   ├── guards/      # Admin Token 鉴权
 │       │   ├── interceptors/ # 响应包装 + 请求 ID
-│       │   └── utils/       # 访客 ID 生成
+│       │   └── utils/       # 访客 ID 生成 (SHA256 + SALT)
 │       ├── config/          # Prisma 服务 + PrismaPg adapter
 │       └── modules/
 │           ├── posts/       # 文章 CRUD + DTO 校验
-│           ├── comments/    # 评论 (公开 + 管理)
+│           ├── comments/    # 评论 (公开 + 管理，全部需审核)
 │           ├── layout/      # 页面布局 (blocks + DTO 校验)
-│           ├── media/       # 文件上传/管理/引用检测
+│           ├── media/       # 文件上传/管理/引用检测 (存储挂载卷)
 │           ├── site/        # 站点配置
 │           └── admin/       # 管理模块汇总
 ├── frontend/
-│   ├── nginx.conf           # 生产 Nginx 配置 (API + Media 反代)
+│   ├── nginx.conf           # 生产 Nginx (API + Media 反代，50MB 上传)
 │   └── src/
+│       ├── main.tsx         # 入口 (BrowserRouter + future flags)
+│       ├── App.tsx          # 路由 + 管理后台密路径
+│       ├── registry.ts      # block 类型注册表
+│       ├── vite-env.d.ts    # Vite 客户端类型
 │       ├── blocks/          # 页面构建器块组件
-│       │   ├── Hero.tsx     # 头图 + 标题
-│       │   ├── AboutMe.tsx  # 个人介绍
-│       │   ├── SocialLinks.tsx # 社交链接
+│       │   ├── Hero.tsx     # 头图 + 标题 + 头像
+│       │   ├── AboutMe.tsx  # 个人介绍 (content)
+│       │   ├── SocialLinks.tsx # 社交链接 (platform/url)
 │       │   ├── FeaturedPosts.tsx # 精选文章
 │       │   └── Divider.tsx  # 分割线
 │       ├── pages/           # 页面
@@ -56,19 +62,32 @@ zenportal/
 │       │   ├── BlogPage.tsx     # 博客列表
 │       │   └── PostPage.tsx     # 文章详情 + 评论区
 │       ├── admin/           # 管理后台
-│       │   ├── AdminPage.tsx    # 后台 Tab 导航
-│       │   ├── AdminLayout.tsx  # 页面布局编辑器 (JSON)
-│       │   ├── AdminPosts.tsx   # 文章管理 + 富文本编辑器
+│       │   ├── AdminPage.tsx    # Tab 导航 (Posts/Media/Comments/Layout)
+│       │   ├── AdminPosts.tsx   # 文章列表 + ID 复制
+│       │   ├── AdminMedia.tsx   # 媒体管理 (上传/lightbox/引用检测)
 │       │   ├── AdminComments.tsx # 评论审核 (批量操作)
-│       │   └── AdminMedia.tsx   # 媒体管理 (上传/删除/引用检测)
+│       │   ├── AdminLayout.tsx  # 页面布局编辑器 (JSON + 行号)
+│       │   ├── PostEditor.tsx   # 文章编辑 (Edit/Preview 双栏)
+│       │   ├── AdminGuard.tsx   # 后台登录守卫
+│       │   ├── Lightbox.tsx     # 媒体预览灯箱
+│       │   ├── UnreferencedPanel.tsx # 未引用文件面板
+│       │   ├── layoutJson.ts    # 布局 JSON 校验纯函数
+│       │   └── usePosts.ts / useComments.ts / useMedia.ts  # 业务逻辑 hooks
+│       ├── hooks/           # 公开页 hooks
+│       │   ├── usePosts.ts      # 博客列表/详情
+│       │   ├── useComments.ts   # 评论区
+│       │   └── useLayout.ts     # 首页布局
 │       ├── components/      # 通用组件
-│       │   ├── MarkdownRenderer.tsx # Markdown 渲染 (react-markdown)
-│       │   ├── PostCard.tsx       # 文章卡片
-│       │   ├── ConfirmDialog.tsx  # 确认弹窗
-│       │   ├── Pagination.tsx     # 分页
-│       │   └── Skeleton.tsx       # 加载骨架屏
-│       ├── utils/           # 访客 ID / 颜色工具
-│       └── api/             # API 客户端 (comments / layout / media / posts / site)
+│       │   ├── MarkdownRenderer.tsx # Markdown 渲染 (react-markdown + 高亮)
+│       │   ├── PageRenderer.tsx    # blocks 渲染
+│       │   ├── CommentSection.tsx  # 评论区
+│       │   ├── PostCard.tsx        # 文章卡片
+│       │   ├── ConfirmDialog.tsx   # 确认弹窗 (可自定义按钮文案)
+│       │   ├── Pagination.tsx      # 分页 (buildPages 纯函数)
+│       │   ├── Skeleton.tsx        # 加载骨架屏
+│       │   └── Layout.tsx          # 公共布局
+│       ├── utils/           # getVisitorColor / getDisplayName
+│       └── api/             # client + comments / layout / media / posts
 ├── scripts/
 │   └── setup.js             # 从根 .env 生成子目录 .env
 ├── package.json             # npm workspaces 根配置
@@ -97,8 +116,8 @@ npm run setup
 |---|---|---|
 | `NPM_REGISTRY` | `https://registry.npmmirror.com` | npm 镜像源，置空 = npm 官方源 |
 | `DB_USER` / `DB_PASSWORD` / `DB_NAME` | `postgres` / `postgres` / `zenportal` | 数据库连接，docker-compose 自动拼接 `DATABASE_URL` |
-| `ADMIN_TOKEN` | `change-me-...` | 管理后台 API 鉴权令牌，用 `openssl rand -hex 32` 生成强随机令牌 |
-| `VISITOR_SALT` | `change-me-...` | 访客 ID 哈希盐值，用于评论区匿名标识 |
+| `ADMIN_TOKEN` | `change-me-...` | 管理后台 API 鉴权令牌，用户自定义强密码 |
+| `VISITOR_SALT` | `change-me-...` | 访客 ID 哈希盐值，用于评论区匿名标识，建议 `openssl rand -hex 32` 生成强随机令牌 |
 | `VITE_API_BASE_URL` | `http://localhost:3000/api` | 前端请求的后端地址 |
 | `VITE_ADMIN_SECRET_PATH` | `my-admin-path` | 管理后台访问路径前缀，改为自己独有的路径（不要在公共场合暴露） |
 | `MEDIA_MAX_IMAGE_SIZE_MB` | `10` | 图片上传大小上限 (MB) |
