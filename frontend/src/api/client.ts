@@ -16,8 +16,12 @@ client.interceptors.response.use(
   (err) => {
     // pass through cancelled requests so callers can distinguish abort from errors
     if (axios.isCancel(err)) return Promise.reject(err);
-    const msg = err.response?.data?.message || err.message || 'Network error';
-    return Promise.reject(new Error(msg));
+    const data = err.response?.data;
+    const msg = data?.message || err.message || 'Network error';
+    const e = new Error(msg) as Error & { refs?: string[] };
+    // attach structured fields (e.g. refs for "file is referenced" errors)
+    if (Array.isArray(data?.refs)) e.refs = data.refs;
+    return Promise.reject(e);
   },
 );
 

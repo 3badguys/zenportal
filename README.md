@@ -296,7 +296,7 @@ backend/
 - 数据库备份/恢复基于 `pg` 驱动实现（无需 `pg_dump`/`psql` 二进制），dump 文件为标准 SQL：`DROP/CREATE TABLE` + `INSERT` + 外键 + `setval`，可直接用 `psql` 导入
 - 数据插入按外键依赖拓扑排序（父表先于子表），序列在数据导入后校正
 - 恢复上传文件暂存系统临时目录，处理完成后即删除
-- 自检脚本：`backend/test-backup.js`（数据库备份/恢复往返校验）、`backend/test-backup-media.js`（媒体备份/恢复 + 恶意压缩包拦截）
+- 自检脚本：`backend/test/test-backup.js`（数据库备份/恢复往返校验）、`backend/test/test-backup-media.js`（媒体备份/恢复 + 恶意压缩包拦截）、`backend/test/test-references.js`（媒体引用检测，含评论引用）
 
 ## 后端
 

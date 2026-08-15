@@ -25,8 +25,21 @@ export default function AdminMedia() {
 
       {m.message && (
         <div className="mb-3 p-2 bg-blue-50 text-blue-700 rounded text-sm flex items-center justify-between">
-          <span>{m.message}</span>
+          <span className="break-all">{m.message}</span>
           <button onClick={() => m.setMessage('')} className="text-blue-400 hover:text-blue-600 ml-2">&times;</button>
+        </div>
+      )}
+
+      {m.deleteError && (
+        <div className="mb-3 p-3 bg-red-50 text-red-700 rounded text-sm">
+          <div className="flex items-center justify-between">
+            <span className="font-medium">{m.deleteError.message}</span>
+            <button onClick={() => m.setDeleteError(null)} className="text-red-400 hover:text-red-600 ml-2">&times;</button>
+          </div>
+          <p className="mt-1.5 text-xs text-red-600">Referenced in:</p>
+          <ul className="mt-1 list-disc pl-5 text-xs space-y-0.5">
+            {m.deleteError.refs.map((r, i) => <li key={i}>{r}</li>)}
+          </ul>
         </div>
       )}
 

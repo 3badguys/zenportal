@@ -14,6 +14,7 @@ export function useMedia() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [confirmBatch, setConfirmBatch] = useState(false);
+  const [deleteError, setDeleteError] = useState<{ message: string; refs: string[] } | null>(null);
 
   const fetchMedia = useCallback(async (p = page) => {
     setLoading(true);
@@ -53,14 +54,15 @@ export function useMedia() {
       fetchMedia();
       setMessage('Deleted!');
     } catch (e: any) {
-      setMessage(e.message);
+      if (Array.isArray(e.refs)) setDeleteError({ message: e.message, refs: e.refs });
+      else setMessage(e.message);
     } finally {
       setConfirmDelete(null);
     }
   };
 
   const handleCopyPath = (path: string) => {
-    navigator.clipboard.writeText(path).then(() => setMessage('Copied!'));
+    navigator.clipboard.writeText(path).then(() => setMessage(`Copied: ${path}`));
   };
 
   const handleFindUnreferenced = async () => {
@@ -111,6 +113,7 @@ export function useMedia() {
   return {
     media, total, page, setPage, loading, message, setMessage,
     unreferenced, showUnreferenced, selected, confirmDelete, confirmBatch,
+    deleteError, setDeleteError,
     fileRef, lightboxIndex,
     handleUpload, executeDelete, handleCopyPath, handleFindUnreferenced,
     executeBatchDelete, toggleSelect, openLightbox, closeLightbox,

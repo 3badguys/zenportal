@@ -104,7 +104,8 @@ export class MediaService {
     if (!medium) throw new NotFoundException('File not found');
 
     // Check references
-    const refs = await this.checkReferences(medium.filePath);
+    const index = await this.buildReferenceIndex();
+    const refs = index.get(medium.filePath) ?? [];
     if (refs.length > 0) {
       throw new BadRequestException({ message: 'File is referenced and cannot be deleted', refs });
     }
@@ -118,14 +119,8 @@ export class MediaService {
 
   async findUnreferenced() {
     const all = await this.prisma.medium.findMany({ orderBy: { createdAt: 'desc' } });
-    const unreferenced: typeof all = [];
-
-    for (const m of all) {
-      const refs = await this.checkReferences(m.filePath);
-      if (refs.length === 0) unreferenced.push(m);
-    }
-
-    return unreferenced;
+    const index = await this.buildReferenceIndex();
+    return all.filter((m) => (index.get(m.filePath)?.length ?? 0) === 0);
   }
 
   async deleteUnreferenced(ids: string[]) {
@@ -141,31 +136,44 @@ export class MediaService {
     return { deleted: toDelete.length };
   }
 
-  private async checkReferences(filePath: string): Promise<string[]> {
-    const refs: string[] = [];
+  // Build filePath → reference descriptions map in ONE pass over the DB.
+  // Pure JS substring checks (DB LIKE is only a coarse pre-filter; comments were
+  // previously never checked, so media referenced in comment text was wrongly
+  // flagged as unreferenced and deletable).
+  private async buildReferenceIndex(): Promise<Map<string, string[]>> {
+    const media = await this.prisma.medium.findMany({ select: { filePath: true } });
+    const index = new Map(media.map((m) => [m.filePath, [] as string[]]));
 
-    const posts = await this.prisma.post.findMany({
-      where: { OR: [{ body: { contains: filePath } }, { coverImage: { contains: filePath } }] },
-    });
+    const posts = await this.prisma.post.findMany({ select: { title: true, body: true, coverImage: true } });
+    const layouts = await this.prisma.pageLayout.findMany({ select: { pageSlug: true, blocks: true } });
+    const configs = await this.prisma.siteConfig.findMany();
+    const comments = await this.prisma.comment.findMany({ select: { content: true } });
+
     for (const p of posts) {
-      if (p.body.includes(filePath)) refs.push(`Post "${p.title}" (body)`);
-      if (p.coverImage?.includes(filePath)) refs.push(`Post "${p.title}" (cover)`);
+      for (const [filePath, refs] of index) {
+        if (p.body?.includes(filePath)) refs.push(`Post "${p.title}" (body)`);
+        if (p.coverImage?.includes(filePath)) refs.push(`Post "${p.title}" (cover)`);
+      }
     }
-
-    const allLayouts = await this.prisma.pageLayout.findMany();
-    for (const l of allLayouts) {
-      if (JSON.stringify(l.blocks).includes(filePath)) {
-        refs.push(`PageLayout "${l.pageSlug}"`);
+    for (const l of layouts) {
+      const blocks = JSON.stringify(l.blocks);
+      for (const [filePath, refs] of index) {
+        if (blocks.includes(filePath)) refs.push(`PageLayout "${l.pageSlug}"`);
+      }
+    }
+    const configText = configs.map((c) => [c.siteTitle, c.siteDescription].filter(Boolean).join('\n')).join('\n');
+    if (configText) {
+      for (const [filePath, refs] of index) {
+        if (configText.includes(filePath)) refs.push('SiteConfig');
+      }
+    }
+    const commentText = comments.map((c) => c.content).join('\n');
+    if (commentText) {
+      for (const [filePath, refs] of index) {
+        if (commentText.includes(filePath)) refs.push('Comment');
       }
     }
 
-    const configs = await this.prisma.siteConfig.findMany({
-      where: { OR: [{ siteTitle: { contains: filePath } }, { siteDescription: { contains: filePath } }] },
-    });
-    for (const _c of configs) {
-      refs.push('SiteConfig');
-    }
-
-    return refs;
+    return index;
   }
 }
