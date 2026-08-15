@@ -20,6 +20,7 @@ function readEnv(file) {
 const env = readEnv(path.join(BACKEND, '.env'));
 const DB_URL = env.DATABASE_URL;
 if (!DB_URL) { console.error('no DATABASE_URL'); process.exit(1); }
+process.env.DATABASE_URL = DB_URL; // needed by PrismaService (reads process.env)
 const TEST_URL = DB_URL.replace(/\/[^/]+$/, '/zenportal_test');
 
 async function main() {
@@ -30,6 +31,18 @@ async function main() {
   await admin.end();
 
   const svc = new BackupService();
+
+  // seed a tagged post so the tags + _PostTags join table are part of the round-trip
+  const { PrismaService } = require(path.join(BACKEND, 'dist/config/prisma.service.js'));
+  const prisma = new PrismaService();
+  await prisma.$connect();
+  const seedTag = await prisma.tag.create({ data: { name: `SeedTag_${Date.now()}`, slug: `seedtag-${Date.now()}` } });
+  const seedPost = await prisma.post.create({
+    data: {
+      slug: `seed-post-${Date.now()}`, title: 'Seed Post', body: 'seed', isPublished: true,
+      tags: { connect: { id: seedTag.id } },
+    },
+  });
 
   // 1. dump live DB
   process.env.DATABASE_URL = DB_URL;
@@ -52,7 +65,7 @@ async function main() {
   const b = new Client({ connectionString: TEST_URL });
   await a.connect(); await b.connect();
 
-  const tables = ['posts', 'comments', 'media', 'page_layouts', 'site_config'];
+  const tables = ['posts', 'comments', 'media', 'page_layouts', 'site_config', 'tags', '_PostTags'];
   for (const t of tables) {
     const ra = await a.query(`SELECT count(*)::int AS n FROM "${t}"`);
     const rb = await b.query(`SELECT count(*)::int AS n FROM "${t}"`);
@@ -72,6 +85,11 @@ async function main() {
   console.log('FKs on comments in restored DB:', fk.rows[0].n);
   if (fk.rows[0].n < 1) { console.error('FK missing'); process.exit(1); }
 
+  // join table rows restored
+  const jt = await b.query(`SELECT count(*)::int AS n FROM "_PostTags"`);
+  console.log('_PostTags rows in restored DB:', jt.rows[0].n);
+  if (jt.rows[0].n !== 1) { console.error('_PostTags rows missing'); process.exit(1); }
+
   // serial sequence advanced past max id?
   const seq = await b.query(`SELECT last_value FROM page_layouts_id_seq`);
   const maxId = await b.query(`SELECT COALESCE(MAX(id),0)::bigint AS m FROM page_layouts`);
@@ -86,7 +104,10 @@ async function main() {
   await a.end(); await b.end();
   await admin.end();
 
-  // cleanup test db
+  // cleanup test db + seeded rows
+  await prisma.post.delete({ where: { id: seedPost.id } });
+  await prisma.tag.delete({ where: { id: seedTag.id } });
+  await prisma.$disconnect();
   const admin2 = new Client({ connectionString: DB_URL.replace(/\/[^/]+$/, '/postgres') });
   await admin2.connect();
   await admin2.query('DROP DATABASE IF EXISTS zenportal_test');

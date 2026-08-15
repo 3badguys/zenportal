@@ -8,8 +8,8 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Get()
-  findAll(@Query('page') page = 1, @Query('pageSize') pageSize = 10) {
-    return this.postsService.findAll(+page, +pageSize);
+  findAll(@Query('page') page = 1, @Query('pageSize') pageSize = 10, @Query('tag') tag?: string) {
+    return this.postsService.findAll(+page, +pageSize, tag);
   }
 
   @Get(':slug')

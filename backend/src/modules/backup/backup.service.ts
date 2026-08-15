@@ -301,20 +301,20 @@ export class BackupService {
        LEFT JOIN pg_catalog.pg_attrdef d ON (a.attrelid = d.adrelid AND a.attnum = d.adnum)
        WHERE a.attrelid = $1::regclass AND a.attnum > 0 AND NOT a.attisdropped
        ORDER BY a.attnum`,
-      [`public.${table}`],
+      [`"public"."${table}"`],
     );
     const pkRes = await client.query(
       `SELECT a.attname
        FROM pg_catalog.pg_index i
        JOIN pg_catalog.pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
        WHERE i.indrelid = $1::regclass AND i.indisprimary`,
-      [`public.${table}`],
+      [`"public"."${table}"`],
     );
     const idxRes = await client.query(
       `SELECT pg_get_indexdef(i.indexrelid) AS indexdef
        FROM pg_catalog.pg_index i
        WHERE i.indrelid = $1::regclass AND NOT i.indisprimary`,
-      [`public.${table}`],
+      [`"public"."${table}"`],
     );
 
     // serial/identity columns: nextval() defaults reference a sequence that
@@ -384,7 +384,7 @@ export class BackupService {
       `SELECT conname, pg_get_constraintdef(oid) AS def
        FROM pg_catalog.pg_constraint
        WHERE conrelid = $1::regclass AND contype = 'f'`,
-      [`public.${table}`],
+      [`"public"."${table}"`],
     );
     return res.rows.map(
       (r) => `ALTER TABLE "public"."${table}" ADD CONSTRAINT "${r.conname}" ${r.def};`,

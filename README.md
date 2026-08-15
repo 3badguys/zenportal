@@ -5,7 +5,7 @@
 ## 功能
 
 - 🧱 **主页构建器** — Hero / About / SocialLinks / FeaturedPosts 等 block 自由组合
-- 📝 **博客** — Markdown 写作，支持 GFM 表格、代码高亮、原始 HTML
+- 📝 **博客** — Markdown 写作，支持 GFM 表格、代码高亮、原始 HTML；文章标签分类 + 前台按标签筛选
 - 💬 **评论区** — 基于 IP 匿名标识，评论需后台审核后展示
 - 🖼️ **媒体管理** — 图片/视频/音频上传，自动检测引用、清理未使用文件
 - 💾 **系统备份** — 数据库/媒体文件一键备份下载，上传恢复，保留最近 30 天
@@ -40,6 +40,7 @@ zenportal/
 │       ├── config/          # Prisma 服务 + PrismaPg adapter
 │       └── modules/
 │           ├── posts/       # 文章 CRUD + DTO 校验
+│           ├── tags/        # 标签管理/合并/引用检测 + 公开标签列表
 │           ├── comments/    # 评论 (公开 + 管理，全部需审核)
 │           ├── layout/      # 页面布局 (blocks + DTO 校验)
 │           ├── media/       # 文件上传/管理/引用检测 (存储挂载卷)
@@ -64,8 +65,10 @@ zenportal/
 │       │   ├── BlogPage.tsx     # 博客列表
 │       │   └── PostPage.tsx     # 文章详情 + 评论区
 │       ├── admin/           # 管理后台
-│       │   ├── AdminPage.tsx    # Tab 导航 (Posts/Media/Layout/Comments/Backup)
+│       │   ├── AdminPage.tsx    # Tab 导航 (Posts/Tags/Media/Layout/Comments/Backup)
 │       │   ├── AdminPosts.tsx   # 文章列表 + ID 复制
+│       │   ├── AdminTags.tsx    # 标签管理 (新建/编辑/合并/删除)
+│       │   ├── TagSelector.tsx  # 文章编辑器标签选择 (1-5 个)
 │       │   ├── AdminMedia.tsx   # 媒体管理 (上传/lightbox/引用检测)
 │       │   ├── AdminComments.tsx # 评论审核 (批量操作)
 │       │   ├── AdminLayout.tsx  # 页面布局编辑器 (JSON + 行号)
@@ -175,11 +178,12 @@ npm run stop
 | 方法 | 路径 | 说明 |
 |---|---|---|
 | GET | `/api/site` | 站点配置 |
-| GET | `/api/posts?page=1&pageSize=10` | 博客列表 (已发布) |
+| GET | `/api/posts?page=1&pageSize=10&tag=react` | 博客列表 (已发布，可按标签 slug 筛选) |
 | GET | `/api/posts/:slug` | 文章详情 |
 | GET | `/api/posts/:slug/comments` | 文章评论 (已审核) |
 | POST | `/api/posts/:slug/comments` | 提交评论 |
 | GET | `/api/layout/:pageSlug` | 页面布局 |
+| GET | `/api/tags` | 热门标签 (含已发布文章数) |
 
 ### 管理 (需 `X-Admin-Token` 请求头)
 
@@ -190,6 +194,9 @@ npm run stop
 | PUT | `/api/admin/comments/:id/approve` | 通过评论 |
 | DELETE | `/api/admin/comments/:id` | 删除评论 |
 | GET/POST/DELETE | `/api/admin/media` | 媒体管理 |
+| GET/POST/PUT/DELETE | `/api/admin/tags` | 标签管理 (新建/编辑/删除) |
+| GET | `/api/admin/tags/all` | 全部标签 (文章编辑器选择用) |
+| POST | `/api/admin/tags/:id/merge` | 合并标签 (文章转移到目标标签后删除) |
 | PUT | `/api/admin/layout/:pageSlug` | 更新页面布局 |
 | PUT | `/api/admin/site` | 更新站点配置 |
 | GET | `/api/admin/backup/database` | 备份数据库，下载 `.sql` |
@@ -246,6 +253,15 @@ npm run stop
 
 Block 组件位于 `frontend/src/blocks/`，导出 `blockType` 常量即自动注册。
 
+## 标签系统
+
+- **管理**：后台「🏷️ Tags」页签 — 新建（slug 自动生成，可改）、编辑、删除、合并
+- **删除保护**：标签仍被文章使用时拒绝删除，并列出引用它的文章标题；提示先移除标签或使用合并
+- **合并**：把标签 A 合并进标签 B，所有文章重新打标，A 自动删除（事务内完成）
+- **文章编辑器**：标签选择器（搜索 + 勾选），只能选择已有标签，最多 5 个
+- **前台博客**：热门标签区（显示已发布文章数），点击标签按 `?tag=slug` 筛选列表；文章卡片与详情页展示 `#标签`，点击可跳转筛选
+- 文章创建/更新通过 `tagIds` 关联标签
+
 ## 评论区设计
 
 - 访客身份：基于 `IP + SALT` 的 SHA256 哈希生成 `visitor_xxxxxxxx` 匿名标识
@@ -296,7 +312,7 @@ backend/
 - 数据库备份/恢复基于 `pg` 驱动实现（无需 `pg_dump`/`psql` 二进制），dump 文件为标准 SQL：`DROP/CREATE TABLE` + `INSERT` + 外键 + `setval`，可直接用 `psql` 导入
 - 数据插入按外键依赖拓扑排序（父表先于子表），序列在数据导入后校正
 - 恢复上传文件暂存系统临时目录，处理完成后即删除
-- 自检脚本：`backend/test/test-backup.js`（数据库备份/恢复往返校验）、`backend/test/test-backup-media.js`（媒体备份/恢复 + 恶意压缩包拦截）、`backend/test/test-references.js`（媒体引用检测，含评论引用）
+- 自检脚本：`backend/test/test-backup.js`（数据库备份/恢复往返校验）、`backend/test/test-backup-media.js`（媒体备份/恢复 + 恶意压缩包拦截）、`backend/test/test-references.js`（媒体引用检测，含评论引用）、`backend/test/test-tags.js`（标签创建/合并/删除保护）
 
 ## 后端
 

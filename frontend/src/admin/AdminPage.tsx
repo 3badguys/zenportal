@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import AdminPosts from './AdminPosts';
+import AdminTags from './AdminTags';
 import AdminComments from './AdminComments';
 import AdminMedia from './AdminMedia';
 import AdminLayout from './AdminLayout';
@@ -7,6 +8,7 @@ import AdminBackup from './AdminBackup';
 
 const tabs = [
   { key: 'posts', label: '📝 Posts', cmp: AdminPosts },
+  { key: 'tags', label: '🏷️ Tags', cmp: AdminTags },
   { key: 'media', label: '🖼️ Media', cmp: AdminMedia },
   { key: 'layout', label: '🧩 Layout', cmp: AdminLayout },
   { key: 'comments', label: '💬 Comments', cmp: AdminComments },

@@ -8,10 +8,11 @@ export interface PostForm {
   body: string;
   coverImage: string;
   isPublished: boolean;
+  tagIds: string[];
 }
 
 export const EMPTY_FORM: PostForm = {
-  slug: '', title: '', summary: '', body: '', coverImage: '', isPublished: false,
+  slug: '', title: '', summary: '', body: '', coverImage: '', isPublished: false, tagIds: [],
 };
 
 export function usePosts() {
@@ -62,6 +63,7 @@ export function usePosts() {
       body: post.body,
       coverImage: post.coverImage || '',
       isPublished: post.isPublished,
+      tagIds: (post.tags || []).map((t) => t.id),
     });
     setShowEditor(true);
   };

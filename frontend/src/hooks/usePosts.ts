@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { postsApi, Post } from '../api/posts';
 
-export function usePosts(page = 1, pageSize = 10) {
+export function usePosts(page = 1, pageSize = 10, tag?: string) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -11,7 +11,7 @@ export function usePosts(page = 1, pageSize = 10) {
     setLoading(true);
     setError(null);
     try {
-      const res = await postsApi.getList(page, pageSize, signal);
+      const res = await postsApi.getList(page, pageSize, signal, tag);
       setPosts(res.data.items);
       setTotal(res.data.total);
     } catch (e: any) {
@@ -20,7 +20,7 @@ export function usePosts(page = 1, pageSize = 10) {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize]);
+  }, [page, pageSize, tag]);
 
   useEffect(() => {
     const controller = new AbortController();

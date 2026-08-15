@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { usePost } from '../hooks/usePosts';
 import { useComments } from '../hooks/useComments';
 import MarkdownRenderer from '../components/MarkdownRenderer';
@@ -71,7 +71,18 @@ export default function PostPage() {
         )}
         <h1 className="text-3xl font-bold text-gray-900 mb-2">{post.title}</h1>
         {post.summary && <p className="text-gray-500 mb-4">{post.summary}</p>}
-        <time className="text-sm text-gray-400">{formattedDate ?? 'Not published'}</time>
+        <div className="flex items-center gap-3 mb-4">
+          <time className="text-sm text-gray-400">{formattedDate ?? 'Not published'}</time>
+          {(post.tags?.length ?? 0) > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {post.tags!.map((t) => (
+                <Link key={t.id} to={`/blog?tag=${t.slug}`} className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
+                  #{t.name}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="mt-8">
           <MarkdownRenderer content={post.body} />
         </div>

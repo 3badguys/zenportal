@@ -1,4 +1,4 @@
-import { IsString, IsBoolean, IsOptional, IsNotEmpty, MaxLength } from 'class-validator';
+import { IsString, IsBoolean, IsOptional, IsNotEmpty, MaxLength, IsArray } from 'class-validator';
 
 export class CreatePostDto {
   @IsString()
@@ -30,6 +30,11 @@ export class CreatePostDto {
   @IsOptional()
   @IsString()
   publishedAt?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tagIds?: string[];
 }
 
 export class UpdatePostDto {
@@ -62,4 +67,9 @@ export class UpdatePostDto {
   @IsOptional()
   @IsString()
   publishedAt?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tagIds?: string[];
 }

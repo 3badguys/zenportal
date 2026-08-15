@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import MarkdownRenderer from '../components/MarkdownRenderer';
+import TagSelector from './TagSelector';
 
 interface PostForm {
   slug: string;
@@ -8,6 +9,7 @@ interface PostForm {
   body: string;
   coverImage: string;
   isPublished: boolean;
+  tagIds: string[];
 }
 
 interface Props {
@@ -71,6 +73,7 @@ export default function PostEditor({ editing, form, loading, onChange, onSave, o
               className="w-full px-3 py-1.5 border rounded text-sm"
             />
           </div>
+          <TagSelector selected={form.tagIds} onChange={(ids) => set({ tagIds: ids })} />
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-medium text-gray-600">Body (Markdown) *</label>
