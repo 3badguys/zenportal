@@ -3,12 +3,14 @@ import AdminPosts from './AdminPosts';
 import AdminComments from './AdminComments';
 import AdminMedia from './AdminMedia';
 import AdminLayout from './AdminLayout';
+import AdminBackup from './AdminBackup';
 
 const tabs = [
   { key: 'posts', label: '📝 Posts', cmp: AdminPosts },
-  { key: 'comments', label: '💬 Comments', cmp: AdminComments },
   { key: 'media', label: '🖼️ Media', cmp: AdminMedia },
   { key: 'layout', label: '🧩 Layout', cmp: AdminLayout },
+  { key: 'comments', label: '💬 Comments', cmp: AdminComments },
+  { key: 'backup', label: '💾 Backup', cmp: AdminBackup },
 ];
 
 export default function AdminPage() {

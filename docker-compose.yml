@@ -45,6 +45,7 @@ services:
         condition: service_healthy
     volumes:
       - media_data:/app/storage
+      - backups_data:/app/backups
 
   # ── Frontend (nginx + static build) ───────────
   frontend:
@@ -65,3 +66,4 @@ services:
 volumes:
   pgdata:
   media_data:
+  backups_data:

@@ -11,6 +11,7 @@ services:
       - ./backend/src:/app/backend/src
       - ./backend/prisma:/app/backend/prisma
       - media_data:/app/backend/storage
+      - backups_data:/app/backend/backups
 
   frontend:
     build:

@@ -38,6 +38,8 @@ Dockerfile*
 
 # Storage (mounted as volume)
 backend/storage
+# Backups (runtime data, kept via volume)
+backend/backups
 
 # Misc
 .pi

@@ -24,7 +24,7 @@ export default function ConfirmDialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onCancel}>
       <div className="bg-white rounded-lg shadow-xl p-5 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
         <h3 className="font-semibold text-gray-800 mb-1">{title}</h3>
-        <p className="text-sm text-gray-600 mb-4">{message}</p>
+        <p className="text-sm text-gray-600 mb-4 whitespace-pre-line">{message}</p>
         <div className="flex justify-end gap-2">
           <button onClick={onCancel} className="px-3 py-1.5 text-sm border rounded hover:bg-gray-50 transition-colors">
             Cancel

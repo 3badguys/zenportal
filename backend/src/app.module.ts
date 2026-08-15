@@ -4,6 +4,7 @@ import { LayoutModule } from './modules/layout/layout.module';
 import { SiteModule } from './modules/site/site.module';
 import { MediaModule } from './modules/media/media.module';
 import { CommentsModule } from './modules/comments/comments.module';
+import { BackupModule } from './modules/backup/backup.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { PrismaService } from './config/prisma.service';
 import { APP_INTERCEPTOR } from '@nestjs/core';
@@ -11,7 +12,7 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 import { RequestIdInterceptor } from './common/interceptors/request-id.interceptor';
 
 @Module({
-  imports: [PostsModule, LayoutModule, SiteModule, MediaModule, CommentsModule, AdminModule],
+  imports: [PostsModule, LayoutModule, SiteModule, MediaModule, CommentsModule, BackupModule, AdminModule],
   providers: [
     PrismaService,
     { provide: APP_INTERCEPTOR, useClass: RequestIdInterceptor },

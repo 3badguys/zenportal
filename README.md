@@ -8,7 +8,8 @@
 - 📝 **博客** — Markdown 写作，支持 GFM 表格、代码高亮、原始 HTML
 - 💬 **评论区** — 基于 IP 匿名标识，评论需后台审核后展示
 - 🖼️ **媒体管理** — 图片/视频/音频上传，自动检测引用、清理未使用文件
-- 🔐 **管理后台** — Token 鉴权，独立路径 `/my-admin-path`，博客 CRUD + 评论审核 + 媒体管理
+- 💾 **系统备份** — 数据库/媒体文件一键备份下载，上传恢复，保留最近 30 天
+- 🔐 **管理后台** — Token 鉴权，独立路径 `/my-admin-path`
 - 🐳 **Docker 部署** — 前后端 + PostgreSQL 一键启动，开发热重载 / 生产静态构建双模式
 
 ## 技术栈
@@ -42,6 +43,7 @@ zenportal/
 │           ├── comments/    # 评论 (公开 + 管理，全部需审核)
 │           ├── layout/      # 页面布局 (blocks + DTO 校验)
 │           ├── media/       # 文件上传/管理/引用检测 (存储挂载卷)
+│           ├── backup/      # 数据库/媒体备份与恢复 (backups/ 目录)
 │           ├── site/        # 站点配置
 │           └── admin/       # 管理模块汇总
 ├── frontend/
@@ -62,11 +64,12 @@ zenportal/
 │       │   ├── BlogPage.tsx     # 博客列表
 │       │   └── PostPage.tsx     # 文章详情 + 评论区
 │       ├── admin/           # 管理后台
-│       │   ├── AdminPage.tsx    # Tab 导航 (Posts/Media/Comments/Layout)
+│       │   ├── AdminPage.tsx    # Tab 导航 (Posts/Media/Layout/Comments/Backup)
 │       │   ├── AdminPosts.tsx   # 文章列表 + ID 复制
 │       │   ├── AdminMedia.tsx   # 媒体管理 (上传/lightbox/引用检测)
 │       │   ├── AdminComments.tsx # 评论审核 (批量操作)
 │       │   ├── AdminLayout.tsx  # 页面布局编辑器 (JSON + 行号)
+│       │   ├── AdminBackup.tsx  # 系统备份/恢复
 │       │   ├── PostEditor.tsx   # 文章编辑 (Edit/Preview 双栏)
 │       │   ├── AdminGuard.tsx   # 后台登录守卫
 │       │   ├── Lightbox.tsx     # 媒体预览灯箱
@@ -189,6 +192,13 @@ npm run stop
 | GET/POST/DELETE | `/api/admin/media` | 媒体管理 |
 | PUT | `/api/admin/layout/:pageSlug` | 更新页面布局 |
 | PUT | `/api/admin/site` | 更新站点配置 |
+| GET | `/api/admin/backup/database` | 备份数据库，下载 `.sql` |
+| GET | `/api/admin/backup/media` | 备份媒体文件，下载 `.tar.gz` |
+| GET | `/api/admin/backup/list` | 服务器本地备份文件列表 |
+| GET | `/api/admin/backup/:filename` | 下载已存在的备份文件 |
+| DELETE | `/api/admin/backup/:filename` | 删除服务器本地备份文件 |
+| POST | `/api/admin/restore/database` | 上传 `.sql` 恢复数据库 |
+| POST | `/api/admin/restore/media` | 上传 `.tar.gz` 恢复媒体 |
 
 ## 页面构建器
 
@@ -242,6 +252,51 @@ Block 组件位于 `frontend/src/blocks/`，导出 `blockType` 常量即自动�
 - 审核策略：同一 IP 至少有一条已通过评论后，后续评论自动放行
 - 前端展示：访客颜色由哈希值映射到 HSL 色环，同一访客所有评论同色
 - 支持嵌套回复（`parentId`）
+
+## 系统备份与恢复
+
+管理后台第 5 个页签「💾 Backup」，均需 Admin Token 鉴权。
+
+### 备份
+
+| 按钮 | 产出文件 | 包含内容 | 文件命名 |
+| :--- | :--- | :--- | :--- |
+| 备份数据库 | `.sql` 文件 | PostgreSQL 完整数据（schema + data + 索引 + 外键 + 自增序列） | `zenportal_database_YYYYMMDD_HHMMSS.sql` |
+| 备份媒体文件 | `.tar.gz` 压缩包 | `storage/` 目录下所有图片/视频/音频 | `zenportal_media_YYYYMMDD_HHMMSS.tar.gz` |
+
+- 点击按钮 → 后端生成备份文件（存至 `backend/backups/`）→ 浏览器自动下载 → Toast 提示
+- 生成期间按钮禁用并显示「Generating, please wait...」
+- 超过 30 天的旧备份文件自动清理
+
+### 恢复（危险操作，需二次确认）
+
+| 恢复类型 | 接受格式 | 恢复内容 | 影响范围 |
+| :--- | :--- | :--- | :--- |
+| 数据库恢复 | `.sql` | 全部数据（文章、评论、配置等） | 仅数据库 |
+| 媒体恢复 | `.tar.gz` | `storage/` 目录下所有媒体文件 | 仅媒体文件 |
+
+- 数据库恢复：整个文件在单个事务中执行，任一步失败自动回滚，不会产生半恢复状态
+- 媒体恢复：先解压校验（拦截路径穿越），解压到临时目录后整体替换 `storage/`，中途失败不影响原数据
+- 恢复前请先备份当前数据；恢复过程中勿刷新页面或关闭浏览器
+
+### 服务器文件存储结构
+
+```
+backend/
+├── backups/
+│   ├── database/            # *.sql 备份
+│   └── media/               # *.tar.gz 备份
+└── storage/                 # 媒体文件（Docker 部署为挂载卷）
+```
+
+> Docker 部署下 `backups/` 已挂载命名卷 `backups_data`，容器重建后备份文件不丢失。
+
+### 实现说明
+
+- 数据库备份/恢复基于 `pg` 驱动实现（无需 `pg_dump`/`psql` 二进制），dump 文件为标准 SQL：`DROP/CREATE TABLE` + `INSERT` + 外键 + `setval`，可直接用 `psql` 导入
+- 数据插入按外键依赖拓扑排序（父表先于子表），序列在数据导入后校正
+- 恢复上传文件暂存系统临时目录，处理完成后即删除
+- 自检脚本：`backend/test-backup.js`（数据库备份/恢复往返校验）、`backend/test-backup-media.js`（媒体备份/恢复 + 恶意压缩包拦截）
 
 ## 后端
 
