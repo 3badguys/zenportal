@@ -10,7 +10,7 @@ export default function AdminMedia() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <h2 className="text-lg font-semibold">Media ({m.total})</h2>
         <div className="flex gap-2">
           <button onClick={m.handleFindUnreferenced} className="px-3 py-1.5 text-xs border rounded hover:bg-gray-100 transition-colors">

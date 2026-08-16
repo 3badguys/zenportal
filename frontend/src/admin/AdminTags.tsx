@@ -29,6 +29,7 @@ export default function AdminTags() {
       )}
 
       <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-gray-500 border-b border-gray-200 bg-gray-50">
@@ -62,6 +63,7 @@ export default function AdminTags() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Create / Edit */}

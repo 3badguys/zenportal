@@ -85,6 +85,7 @@ export default function AdminBackup() {
         {b.backups.length === 0 ? (
           <p className="text-sm text-gray-400 py-3">No backups yet.</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-gray-500 border-b border-gray-200">
@@ -120,6 +121,7 @@ export default function AdminBackup() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
         <p className="mt-3 text-xs text-gray-400">💡 Backup files are stored on the server and retained for 30 days.</p>
       </div>

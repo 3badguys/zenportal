@@ -74,7 +74,7 @@ export default function AdminLayout() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <h2 className="text-lg font-semibold">Page Layout (Home)</h2>
         <button onClick={handleSaveClick} disabled={loading} className="px-4 py-1.5 bg-gray-900 text-white text-sm rounded hover:bg-gray-700 disabled:opacity-50 transition-colors">
           {loading ? 'Saving...' : 'Save Config'}

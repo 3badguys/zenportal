@@ -24,9 +24,9 @@ export default function AdminComments() {
       </div>
 
       {c.selected.size > 0 && (
-        <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded flex items-center justify-between text-sm">
+        <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded flex flex-wrap items-center justify-between gap-2 text-sm">
           <span className="text-blue-700">{c.selected.size} comment(s) selected</span>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button onClick={c.handleBatchApprove} className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors">Approve Selected</button>
             <button onClick={() => { if (c.selected.size > 0) c.setConfirmBatchDelete(true); }} className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors">Delete Selected</button>
             <button onClick={() => c.setSelected(new Set())} className="px-3 py-1 text-xs border rounded hover:bg-gray-100 transition-colors">Clear</button>
