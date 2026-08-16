@@ -18,6 +18,7 @@ const TARGETS = {
     'VITE_ADMIN_SECRET_PATH',
     'FRONTEND_PORT', // vite dev server (vite.config.ts loadEnv)
     'BACKEND_PORT', // vite dev proxy target (vite.config.ts loadEnv)
+    'ALLOWED_HOSTS', // vite dev server allowed Host headers (vite.config.ts loadEnv)
   ],
 };
 
