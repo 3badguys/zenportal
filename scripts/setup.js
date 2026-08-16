@@ -5,8 +5,8 @@ const ROOT = path.resolve(__dirname, '..');
 
 const TARGETS = {
   'backend/.env': [
-    'DATABASE_URL',
-    'PORT',
+    'DATABASE_URL', // generated from DB_* + DB_PORT
+    'BACKEND_PORT',
     'ADMIN_TOKEN',
     'VISITOR_SALT',
     'MEDIA_MAX_IMAGE_SIZE_MB',
@@ -14,15 +14,11 @@ const TARGETS = {
     'MEDIA_MAX_AUDIO_SIZE_MB',
   ],
   'frontend/.env': [
-    'VITE_API_BASE_URL',
+    'VITE_API_BASE_URL', // default built from BACKEND_PORT
     'VITE_ADMIN_SECRET_PATH',
+    'FRONTEND_PORT', // vite dev server (vite.config.ts loadEnv)
+    'BACKEND_PORT', // vite dev proxy target (vite.config.ts loadEnv)
   ],
-};
-
-// defaults when .env does not provide a value
-const DEFAULTS = {
-  VITE_API_BASE_URL: 'http://localhost:3000/api',
-  VITE_ADMIN_SECRET_PATH: 'my-admin-path',
 };
 
 function parseEnv(filePath) {
@@ -53,14 +49,21 @@ function main() {
 
   const vars = parseEnv(rootEnv);
 
+  // Derived values — ports live in root .env only, expanded here into child envs
+  const derived = {
+    DATABASE_URL: `postgresql://${vars.DB_USER || 'postgres'}:${vars.DB_PASSWORD || 'postgres'}@localhost:${vars.DB_PORT || '5432'}/${vars.DB_NAME || 'zenportal'}`,
+    BACKEND_PORT: vars.BACKEND_PORT || '3000',
+    VITE_API_BASE_URL: vars.VITE_API_BASE_URL || `http://localhost:${vars.BACKEND_PORT || '3000'}/api`,
+    FRONTEND_PORT: vars.FRONTEND_PORT || '5173',
+  };
+
   for (const [childRel, keys] of Object.entries(TARGETS)) {
     const childPath = path.join(ROOT, childRel);
     const lines = [];
     for (const key of keys) {
-      if (vars[key] !== undefined && vars[key] !== '') {
-        lines.push(`${key}=${vars[key]}`);
-      } else if (DEFAULTS[key]) {
-        lines.push(`${key}=${DEFAULTS[key]}`);
+      const val = derived[key] ?? vars[key];
+      if (val !== undefined && val !== '') {
+        lines.push(`${key}=${val}`);
       } else {
         console.warn(`  ⚠ ${childRel}: ${key} not set — skipped`);
       }

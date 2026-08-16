@@ -20,8 +20,9 @@ COPY backend/ backend/
 
 # ---- Development (hot reload) ----
 FROM base AS development
+ARG BACKEND_PORT
 WORKDIR /app/backend
-EXPOSE 3000
+EXPOSE $BACKEND_PORT
 CMD ["npx", "nest", "start", "--watch"]
 
 # ---- Builder (compile + prune) ----
@@ -40,5 +41,6 @@ COPY --from=builder /app/backend/dist ./dist
 COPY --from=builder /app/backend/prisma ./prisma
 COPY --from=builder /app/backend/prisma.config.ts ./
 COPY --from=builder /app/backend/package.json ./
-EXPOSE 3000
+ARG BACKEND_PORT
+EXPOSE $BACKEND_PORT
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]

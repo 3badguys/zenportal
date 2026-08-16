@@ -2,4 +2,4 @@
 services:
   frontend:
     ports:
-      - "5174:80"
+      - "${FRONTEND_PORT:-5173}:80"

@@ -122,9 +122,12 @@ npm run setup
 |---|---|---|
 | `NPM_REGISTRY` | `https://registry.npmmirror.com` | npm 镜像源，置空 = npm 官方源 |
 | `DB_USER` / `DB_PASSWORD` / `DB_NAME` | `postgres` / `postgres` / `zenportal` | 数据库连接，docker-compose 自动拼接 `DATABASE_URL` |
+| `DB_PORT` | `5432` | PostgreSQL 端口（容器内外一致，host 映射同值） |
+| `BACKEND_PORT` | `3000` | 后端 API 端口（容器内外一致，host 映射同值） |
+| `FRONTEND_PORT` | `5173` | 前端端口：dev = vite 服务，prod = 宿主侧映射到 nginx :80 |
 | `ADMIN_TOKEN` | `change-me-...` | 管理后台 API 鉴权令牌，用户自定义强密码 |
 | `VISITOR_SALT` | `change-me-...` | 访客 ID 哈希盐值，用于评论区匿名标识，建议 `openssl rand -hex 32` 生成强随机令牌 |
-| `VITE_API_BASE_URL` | `http://localhost:3000/api` | 前端请求的后端地址 |
+| `VITE_API_BASE_URL` | `http://localhost:{BACKEND_PORT}/api` | 前端请求的后端地址 |
 | `VITE_ADMIN_SECRET_PATH` | `my-admin-path` | 管理后台访问路径前缀，改为自己独有的路径（不要在公共场合暴露） |
 | `MEDIA_MAX_IMAGE_SIZE_MB` | `10` | 图片上传大小上限 (MB) |
 | `MEDIA_MAX_VIDEO_SIZE_MB` | `50` | 视频上传大小上限 (MB) |
@@ -133,7 +136,7 @@ npm run setup
 ### 2. 启动 Docker
 
 ```bash
-# 开发模式 (热重载) — 前端 :5174，后端 :3000
+# 开发模式 (热重载) — 前端 :${FRONTEND_PORT}，后端 :${BACKEND_PORT}
 npm run start:dev
 
 # 生产模式 — 前端 Nginx 静态构建
@@ -160,10 +163,10 @@ docker compose up -d --build
 
 | 服务 | 开发 | 生产 |
 |---|---|---|
-| 前端 | http://localhost:5174 | http://localhost:5174 |
-| 后端 API | http://localhost:3000 | (nginx 代理 /api/) |
-| 管理后台 | http://localhost:5174/my-admin-path | http://localhost:5174/my-admin-path |
-| PostgreSQL | localhost:5433 | localhost:5433 |
+| 前端 | http://localhost:${FRONTEND_PORT} | http://localhost:${FRONTEND_PORT} |
+| 后端 API | http://localhost:${BACKEND_PORT} | (nginx 代理 /api/) |
+| 管理后台 | http://localhost:${FRONTEND_PORT}/my-admin-path | http://localhost:${FRONTEND_PORT}/my-admin-path |
+| PostgreSQL | localhost:${DB_PORT} | localhost:${DB_PORT} |
 
 ### 4. 停止
 

@@ -18,8 +18,9 @@ COPY frontend/ frontend/
 
 # ---- Dev Stage ----
 FROM base AS development
+ARG FRONTEND_PORT
 WORKDIR /app/frontend
-EXPOSE 5174
+EXPOSE $FRONTEND_PORT
 CMD ["npx", "vite", "--host", "0.0.0.0"]
 
 # ---- Prod Stage ----
@@ -29,7 +30,12 @@ WORKDIR /app/frontend
 RUN npm run build
 
 FROM nginx:alpine AS production
+# Default so envsubst always has the var even when run standalone (no compose env);
+# value comes from build arg (compose passes ${BACKEND_PORT} from root .env)
+ARG BACKEND_PORT
+ENV BACKEND_PORT=$BACKEND_PORT
 COPY --from=builder /app/frontend/dist /usr/share/nginx/html
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+# envsubst template: rendered at container start from BACKEND_PORT env var, substitutes proxy_pass target port
+COPY frontend/nginx.conf.template /etc/nginx/templates/default.conf.template
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

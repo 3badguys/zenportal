@@ -3,8 +3,10 @@ services:
   backend:
     build:
       target: development
+      args:
+        BACKEND_PORT: ${BACKEND_PORT:-3000}
     ports:
-      - "3000:3000"
+      - "${BACKEND_PORT:-3000}:${BACKEND_PORT:-3000}"
     command: >
       sh -c "npx prisma migrate deploy && npx nest start --watch"
     volumes:
@@ -16,10 +18,12 @@ services:
   frontend:
     build:
       target: development
+      args:
+        FRONTEND_PORT: ${FRONTEND_PORT:-5173}
     ports:
-      - "5174:5174"
+      - "${FRONTEND_PORT:-5173}:${FRONTEND_PORT:-5173}"
     environment:
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3000/api}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
     command: npx vite --host 0.0.0.0
     volumes:
       - ./frontend/src:/app/frontend/src

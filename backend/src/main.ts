@@ -25,7 +25,7 @@ async function bootstrap() {
 
   app.useStaticAssets(path.resolve(process.cwd(), 'storage'), { prefix: '/media/' });
 
-  const port = process.env.PORT || 3000;
+  const port = process.env.BACKEND_PORT || 3000;
   const server = await app.listen(port, '0.0.0.0');
   logger.log(`Server running on http://0.0.0.0:${port}`);
 

@@ -4,18 +4,18 @@ services:
     image: postgres:16-alpine
     container_name: zenportal-db
     restart: unless-stopped
-    command: -p 5433
+    command: -p ${DB_PORT:-5432}
     environment:
       TZ: ${TIMEZONE:-Asia/Shanghai}
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
       POSTGRES_DB: ${DB_NAME:-zenportal}
     ports:
-      - "5433:5433"
+      - "${DB_PORT:-5432}:${DB_PORT:-5432}"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${DB_USER:-postgres}", "-p", "5433"]
+      test: ["CMD", "pg_isready", "-U", "${DB_USER:-postgres}", "-p", "${DB_PORT:-5432}"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -31,11 +31,11 @@ services:
     container_name: zenportal-backend
     restart: unless-stopped
     expose:
-      - "3000"
+      - "${BACKEND_PORT:-3000}"
     environment:
       TZ: ${TIMEZONE:-Asia/Shanghai}
-      DATABASE_URL: "postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5433/${DB_NAME:-zenportal}"
-      PORT: ${PORT:-3000}
+      DATABASE_URL: "postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:${DB_PORT:-5432}/${DB_NAME:-zenportal}"
+      BACKEND_PORT: ${BACKEND_PORT:-3000}
       ADMIN_TOKEN: ${ADMIN_TOKEN:-}
       VISITOR_SALT: ${VISITOR_SALT:-}
       MEDIA_MAX_IMAGE_SIZE_MB: ${MEDIA_MAX_IMAGE_SIZE_MB:-10}
@@ -57,10 +57,13 @@ services:
       args:
         NPM_REGISTRY: ${NPM_REGISTRY:-}
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        BACKEND_PORT: ${BACKEND_PORT:-3000}
     container_name: zenportal-frontend
     restart: unless-stopped
     environment:
       TZ: ${TIMEZONE:-Asia/Shanghai}
+      FRONTEND_PORT: ${FRONTEND_PORT:-5173}
+      BACKEND_PORT: ${BACKEND_PORT:-3000}
     depends_on:
       - backend
 
