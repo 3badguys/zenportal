@@ -16,6 +16,11 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
+    # Never cache index.html (vite hashed assets are immutable, entry must be fresh)
+    location = /index.html {
+        add_header Cache-Control "no-cache, must-revalidate";
+    }
+
     # Media proxy
     location /media/ {
         proxy_pass http://zenportal-backend:${BACKEND_PORT};

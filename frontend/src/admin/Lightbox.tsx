@@ -33,6 +33,11 @@ export default function Lightbox({ media, index, onClose, onPrev, onNext }: Ligh
           <img src={m.filePath} alt={m.originalName} className="max-w-full max-h-[80vh] object-contain rounded shadow-lg" />
         ) : m.mimeType?.startsWith('video/') ? (
           <video src={m.filePath} controls className="max-w-full max-h-[80vh] rounded shadow-lg" />
+        ) : m.mimeType?.startsWith('audio/') ? (
+          <div className="bg-gray-800 p-8 rounded shadow-lg flex flex-col items-center gap-4">
+            <div className="text-6xl">🎵</div>
+            <audio src={m.filePath} controls className="w-72 max-w-full" />
+          </div>
         ) : (
           <div className="bg-gray-800 text-white p-8 rounded flex items-center justify-center text-4xl">📄</div>
         )}

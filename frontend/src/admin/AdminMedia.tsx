@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { Medium } from '../api/media';
 import Skeleton from '../components/Skeleton';
 import Pagination from '../components/Pagination';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -7,6 +9,16 @@ import { useMedia } from './useMedia';
 
 export default function AdminMedia() {
   const m = useMedia();
+  const [category, setCategory] = useState<'all' | 'image' | 'audio' | 'video'>('all');
+  const matches = (item: Medium) => category === 'all' || item.mimeType?.startsWith(category + '/');
+  const visible = m.media.filter(matches);
+  const count = (c: string) => c === 'all' ? m.media.length : m.media.filter(i => i.mimeType?.startsWith(c + '/')).length;
+  const tabs: { key: typeof category; label: string }[] = [
+    { key: 'all', label: 'All' },
+    { key: 'image', label: 'Image' },
+    { key: 'audio', label: 'Audio' },
+    { key: 'video', label: 'Video' },
+  ];
 
   return (
     <div>
@@ -21,6 +33,16 @@ export default function AdminMedia() {
             <input ref={m.fileRef} type="file" onChange={m.handleUpload} className="hidden" accept="image/*,video/*,audio/*" />
           </label>
         </div>
+      </div>
+
+      <div className="flex gap-1 mb-4 border-b border-gray-200">
+        {tabs.map(t => (
+          <button
+            key={t.key}
+            onClick={() => setCategory(t.key)}
+            className={`px-3 py-1.5 text-sm border-b-2 transition-colors ${category === t.key ? 'border-gray-900 text-gray-900 font-medium' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          >{t.label} ({count(t.key)})</button>
+        ))}
       </div>
 
       {m.message && (
@@ -61,7 +83,7 @@ export default function AdminMedia() {
         <Skeleton count={16} variant="grid" />
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-          {m.media.map((item) => {
+          {visible.map((item) => {
             const lbIdx = m.getLightboxIndex(item);
             const isPreviewable = lbIdx >= 0;
             return (
@@ -74,18 +96,23 @@ export default function AdminMedia() {
                     onClick={() => isPreviewable && m.openLightbox(lbIdx)}
                   />
                 ) : item.mimeType?.startsWith('video/') ? (
+                  <video
+                    src={item.filePath}
+                    preload="metadata"
+                    className="w-full aspect-square object-cover cursor-pointer transition-transform group-hover:scale-105"
+                    onClick={() => isPreviewable && m.openLightbox(lbIdx)}
+                  />
+                ) : item.mimeType?.startsWith('audio/') ? (
                   <div
                     className="w-full aspect-square bg-gray-100 flex items-center justify-center text-2xl cursor-pointer transition-colors group-hover:bg-gray-200"
                     onClick={() => isPreviewable && m.openLightbox(lbIdx)}
-                  >
-                    🎬
-                  </div>
+                  >🎵</div>
                 ) : (
-                  <div className="w-full aspect-square bg-gray-100 flex items-center justify-center text-2xl">🎵</div>
+                  <div className="w-full aspect-square bg-gray-100 flex items-center justify-center text-2xl">📄</div>
                 )}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100">
-                  <button onClick={(e) => { e.stopPropagation(); m.handleCopyPath(item.filePath); }} className="px-2 py-1 bg-white text-xs rounded shadow hover:bg-gray-100 transition-colors" title="Copy path">📋</button>
-                  <button onClick={(e) => { e.stopPropagation(); m.setConfirmDelete({ id: item.id, name: item.originalName }); }} className="px-2 py-1 bg-white text-xs rounded shadow text-red-600 hover:bg-red-50 transition-colors" title="Delete">🗑</button>
+                <div className="absolute inset-0 pointer-events-none bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100">
+                  <button onClick={(e) => { e.stopPropagation(); m.handleCopyPath(item.filePath); }} className="pointer-events-auto px-2 py-1 bg-white text-xs rounded shadow hover:bg-gray-100 transition-colors" title="Copy path">📋</button>
+                  <button onClick={(e) => { e.stopPropagation(); m.setConfirmDelete({ id: item.id, name: item.originalName }); }} className="pointer-events-auto px-2 py-1 bg-white text-xs rounded shadow text-red-600 hover:bg-red-50 transition-colors" title="Delete">🗑</button>
                 </div>
                 <div className="p-1 text-[10px] text-gray-400 truncate">{item.originalName}</div>
               </div>
@@ -94,7 +121,7 @@ export default function AdminMedia() {
         </div>
       )}
 
-      {m.media.length === 0 && !m.loading && <p className="text-gray-400 text-center py-8 text-sm">No media files found.</p>}
+      {visible.length === 0 && !m.loading && <p className="text-gray-400 text-center py-8 text-sm">No media files found.</p>}
 
       {m.totalPages > 1 && <Pagination page={m.page} totalPages={m.totalPages} onPage={m.setPage} />}
 

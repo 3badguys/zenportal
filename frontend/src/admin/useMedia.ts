@@ -106,7 +106,7 @@ export function useMedia() {
   const prevLightbox = () => setLightboxIndex(i => (i !== null && i > 0 ? i - 1 : i));
   const nextLightbox = () => setLightboxIndex(i => (i !== null && i < media.length - 1 ? i + 1 : i));
 
-  const previewable = media.filter(m => m.mimeType?.startsWith('image/') || m.mimeType?.startsWith('video/'));
+  const previewable = media.filter(m => m.mimeType?.startsWith('image/') || m.mimeType?.startsWith('video/') || m.mimeType?.startsWith('audio/'));
   const getLightboxIndex = (m: Medium) => previewable.findIndex(p => p.id === m.id);
   const totalPages = Math.ceil(total / 50);
 
