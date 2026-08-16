@@ -163,7 +163,7 @@ docker compose up -d --build
 | 前端 | http://localhost:5174 | http://localhost:5174 |
 | 后端 API | http://localhost:3000 | (nginx 代理 /api/) |
 | 管理后台 | http://localhost:5174/my-admin-path | http://localhost:5174/my-admin-path |
-| PostgreSQL | localhost:5432 | localhost:5432 |
+| PostgreSQL | localhost:5433 | localhost:5433 |
 
 ### 4. 停止
 
