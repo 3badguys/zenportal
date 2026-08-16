@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { commentsApi, CommentGroup } from '../api/comments';
 import { getVisitorColor, getDisplayName } from '../utils/visitor';
 import Skeleton from './Skeleton';
@@ -11,6 +11,10 @@ interface Props {
 
 export default function CommentSection({ slug, groups: initialGroups, loading }: Props) {
   const [groups, setGroups] = useState(initialGroups);
+
+  useEffect(() => {
+    setGroups(initialGroups);
+  }, [initialGroups]);
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
