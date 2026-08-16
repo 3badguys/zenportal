@@ -133,7 +133,7 @@ npm run setup
 ### 2. 启动 Docker
 
 ```bash
-# 开发模式 (热重载) — 前端 :5173，后端 :3000
+# 开发模式 (热重载) — 前端 :5174，后端 :3000
 npm run start:dev
 
 # 生产模式 — 前端 Nginx 静态构建
@@ -160,9 +160,9 @@ docker compose up -d --build
 
 | 服务 | 开发 | 生产 |
 |---|---|---|
-| 前端 | http://localhost:5173 | http://localhost:5173 |
+| 前端 | http://localhost:5174 | http://localhost:5174 |
 | 后端 API | http://localhost:3000 | (nginx 代理 /api/) |
-| 管理后台 | http://localhost:5173/my-admin-path | http://localhost:5173/my-admin-path |
+| 管理后台 | http://localhost:5174/my-admin-path | http://localhost:5174/my-admin-path |
 | PostgreSQL | localhost:5432 | localhost:5432 |
 
 ### 4. 停止

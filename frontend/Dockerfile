@@ -19,7 +19,7 @@ COPY frontend/ frontend/
 # ---- Dev Stage ----
 FROM base AS development
 WORKDIR /app/frontend
-EXPOSE 5173
+EXPOSE 5174
 CMD ["npx", "vite", "--host", "0.0.0.0"]
 
 # ---- Prod Stage ----
