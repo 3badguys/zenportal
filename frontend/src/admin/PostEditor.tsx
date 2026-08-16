@@ -29,16 +29,33 @@ export default function PostEditor({ editing, form, loading, onChange, onSave, o
   return (
     <div className="fixed inset-0 z-40 flex items-start justify-center pt-[5vh] bg-black/40">
       <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-lg shadow-xl w-full max-w-2xl min-w-0 sm:mx-4 h-[90vh] flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white border-b px-5 py-3 flex items-center justify-between z-10">
           <h3 className="font-semibold text-gray-800">
             {editing ? 'Edit Post' : 'New Post'}
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.isPublished}
+                onChange={e => set({ isPublished: e.target.checked })}
+              />
+              Published
+            </label>
+            <button
+              onClick={onSave}
+              disabled={loading}
+              className="px-3 py-1.5 bg-gray-900 text-white text-sm rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? 'Saving...' : 'Save'}
+            </button>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+          </div>
         </div>
-        <div className="p-5 space-y-4">
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Slug *</label>
@@ -104,10 +121,10 @@ export default function PostEditor({ editing, form, loading, onChange, onSave, o
               <textarea
                 value={form.body}
                 onChange={e => set({ body: e.target.value })}
-                className="w-full px-3 py-2 border rounded text-sm font-mono min-h-[200px]"
+                className="w-full px-3 py-2 border rounded font-mono text-base min-h-[60vh] resize-y"
               />
             ) : (
-              <div className="w-full px-3 py-2 border rounded min-h-[200px] bg-gray-50 overflow-auto">
+              <div className="w-full px-3 py-2 border rounded h-[60vh] bg-gray-50 overflow-auto">
                 {form.body ? (
                   <MarkdownRenderer content={form.body} />
                 ) : (
@@ -115,27 +132,6 @@ export default function PostEditor({ editing, form, loading, onChange, onSave, o
                 )}
               </div>
             )}
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="ispub"
-              checked={form.isPublished}
-              onChange={e => set({ isPublished: e.target.checked })}
-            />
-            <label htmlFor="ispub" className="text-sm text-gray-600">Published</label>
-          </div>
-          <div className="flex gap-2 pt-1">
-            <button
-              onClick={onSave}
-              disabled={loading}
-              className="px-4 py-1.5 bg-gray-900 text-white text-sm rounded hover:bg-gray-700 disabled:opacity-50 transition-colors"
-            >
-              {loading ? 'Saving...' : 'Save'}
-            </button>
-            <button onClick={onClose} className="px-4 py-1.5 border text-sm rounded hover:bg-gray-100 transition-colors">
-              Cancel
-            </button>
           </div>
         </div>
       </div>
